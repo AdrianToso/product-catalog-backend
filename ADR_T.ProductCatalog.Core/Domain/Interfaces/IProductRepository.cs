@@ -3,5 +3,7 @@
 namespace ADR_T.ProductCatalog.Core.Domain.Interfaces;
 public interface IProductRepository : IRepository<Product>
 {
-    // Task<IReadOnlyList<Product>> GetProductsByCategoryIdAsync(Guid categoryId, CancellationToken cancellationToken = default);
+    Task<Product?> GetByIdWithCategoriesAsync(Guid id, CancellationToken cancellationToken = default);
+
+    Task<IEnumerable<Product>> GetAllWithCategoriesAsync(CancellationToken cancellationToken = default);
 }

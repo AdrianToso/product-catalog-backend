@@ -1,12 +1,28 @@
-﻿using ADR_T.ProductCatalog.Core.Domain.Entities;
-using ADR_T.ProductCatalog.Core.Domain.Interfaces;
-using ADR_T.ProductCatalog.Infrastructure.Persistence;
-
+﻿using ADR_T.ProductCatalog.Core.Domain.Entities; 
+using ADR_T.ProductCatalog.Core.Domain.Interfaces; 
+using ADR_T.ProductCatalog.Infrastructure.Persistence; 
+using Microsoft.EntityFrameworkCore; 
 namespace ADR_T.ProductCatalog.Infrastructure.Repositories;
+
 public class ProductRepository : GenericRepository<Product>, IProductRepository
 {
-    public ProductRepository(AppDbContext context) : base(context)
+    private readonly AppDbContext _dbContext;
+
+    public ProductRepository(AppDbContext dbContext) : base(dbContext)
     {
+        _dbContext = dbContext;
+    }
+
+    public async Task<Product?> GetByIdWithCategoriesAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Products
+            .Include(p => p.Categories) 
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+    }
+    public async Task<IEnumerable<Product>> GetAllWithCategoriesAsync(CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Products
+            .Include(p => p.Categories) 
+            .ToListAsync(cancellationToken);
     }
 }
-

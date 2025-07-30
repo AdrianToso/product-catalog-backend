@@ -1,22 +1,31 @@
-﻿using ADR_T.ProductCatalog.Core.Domain.Entities;
-using ADR_T.ProductCatalog.Core.Domain.Exceptions; // Necesario para ValidationException
-using ADR_T.ProductCatalog.Core.Domain.Interfaces;
-using MediatR;
+﻿using ADR_T.ProductCatalog.Core.Domain.Entities; 
+using ADR_T.ProductCatalog.Core.Domain.Exceptions; 
+using ADR_T.ProductCatalog.Core.Domain.Interfaces; 
+using MediatR; 
 
-namespace ADR_T.ProductCatalog.Application.Features.Products.Commands.CreateProduct;
+namespace ADR_T.ProductCatalog.Application.Features.Products.Commands.UpdateProduct;
 
-public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, Guid>
+public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand> 
 {
     private readonly IUnitOfWork _unitOfWork;
 
-    public CreateProductCommandHandler(IUnitOfWork unitOfWork)
+    public UpdateProductCommandHandler(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Guid> Handle(CreateProductCommand request, CancellationToken cancellationToken)
+    public async Task Handle(UpdateProductCommand request, CancellationToken cancellationToken)
     {
-        var product = new Product(request.Name, request.Description, request.ImageUrl);
+        var productToUpdate = await _unitOfWork.ProductRepository.GetByIdWithCategoriesAsync(request.Id, cancellationToken);
+
+        if (productToUpdate == null)
+        {
+            throw new NotFoundException(nameof(Product), request.Id);
+        }
+
+        productToUpdate.Update(request.Name, request.Description, request.ImageUrl);
+
+        productToUpdate.Categories.Clear();
 
         if (request.CategoryIds != null && request.CategoryIds.Any())
         {
@@ -35,13 +44,11 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
 
             foreach (var category in categories)
             {
-                product.Categories.Add(category);
+                productToUpdate.Categories.Add(category);
             }
         }
 
-        await _unitOfWork.ProductRepository.AddAsync(product, cancellationToken);
+        await _unitOfWork.ProductRepository.UpdateAsync(productToUpdate, cancellationToken);
         await _unitOfWork.CommitAsync(cancellationToken);
-
-        return product.Id; 
     }
 }
