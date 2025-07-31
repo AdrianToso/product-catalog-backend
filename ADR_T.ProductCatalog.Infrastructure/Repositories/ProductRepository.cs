@@ -1,7 +1,8 @@
-﻿using ADR_T.ProductCatalog.Core.Domain.Entities; 
-using ADR_T.ProductCatalog.Core.Domain.Interfaces; 
-using ADR_T.ProductCatalog.Infrastructure.Persistence; 
-using Microsoft.EntityFrameworkCore; 
+﻿using ADR_T.ProductCatalog.Core.Domain.Entities;
+using ADR_T.ProductCatalog.Core.Domain.Interfaces;
+using ADR_T.ProductCatalog.Infrastructure.Persistence;
+using Microsoft.EntityFrameworkCore;
+
 namespace ADR_T.ProductCatalog.Infrastructure.Repositories;
 
 public class ProductRepository : GenericRepository<Product>, IProductRepository
@@ -16,13 +17,28 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
     public async Task<Product?> GetByIdWithCategoriesAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Products
-            .Include(p => p.Categories) 
+            .Include(p => p.Categories)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
     public async Task<IEnumerable<Product>> GetAllWithCategoriesAsync(CancellationToken cancellationToken = default)
     {
         return await _dbContext.Products
-            .Include(p => p.Categories) 
+            .Include(p => p.Categories)
             .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IEnumerable<Product>> GetAllWithCategoriesPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Products
+            .Include(p => p.Categories)
+            .OrderBy(p => p.Name) 
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.Products.CountAsync(cancellationToken);
     }
 }

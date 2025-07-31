@@ -27,7 +27,7 @@ public class GenericRepository<T> : IRepository<T> where T : EntityBase
 
     public virtual async Task<T?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        return await _context.Set<T>().FindAsync(new object[] {id}, cancellationToken);
+        return await _context.Set<T>().FindAsync(new object[] { id }, cancellationToken);
     }
 
     public async Task<IReadOnlyList<T>> ListAllAsync(CancellationToken cancellationToken = default)
@@ -45,5 +45,18 @@ public class GenericRepository<T> : IRepository<T> where T : EntityBase
         _context.Entry(entity).State = EntityState.Modified;
         return Task.CompletedTask;
     }
-}
 
+    public async Task<int> CountAsync(CancellationToken cancellationToken = default)
+    {
+        return await _context.Set<T>().CountAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<T>> ListPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
+    {
+        return await _context.Set<T>()
+            .OrderBy(e => e.Id) 
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+    }
+}

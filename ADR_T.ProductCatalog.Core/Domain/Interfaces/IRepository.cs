@@ -10,4 +10,6 @@ public interface IRepository<T> where T : EntityBase
     Task<T> AddAsync(T entity, CancellationToken cancellationToken = default);
     Task UpdateAsync(T entity, CancellationToken cancellationToken = default);
     Task DeleteAsync(T entity, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<T>> ListPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
+    Task<int> CountAsync(CancellationToken cancellationToken = default); 
 }
