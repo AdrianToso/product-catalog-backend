@@ -13,7 +13,8 @@ public class UpdateProductCommandHandlerTests
     public async Task Handle_Should_Update_Product_When_Found()
     {
         // Arrange
-        var product = new Product("Original", "Desc", null);
+        var categoryId = Guid.NewGuid();
+        var product = new Product("Original", "Desc", categoryId);
 
         var repo = new Mock<IProductRepository>();
         repo.Setup(r => r.GetByIdWithCategoriesAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
@@ -26,11 +27,11 @@ public class UpdateProductCommandHandlerTests
         var handler = new UpdateProductCommandHandler(uow.Object);
         var command = new UpdateProductCommand
         {
-            Id = Guid.NewGuid(), // No importa
+            Id = Guid.NewGuid(),
             Name = "Nuevo",
             Description = "Actualizado",
             ImageUrl = "img.png",
-            CategoryIds = new List<Guid>()
+            CategoryId = categoryId
         };
 
         // Act
@@ -40,6 +41,7 @@ public class UpdateProductCommandHandlerTests
         product.Name.Should().Be("Nuevo");
         product.Description.Should().Be("Actualizado");
         product.ImageUrl.Should().Be("img.png");
+        product.CategoryId.Should().Be(categoryId);
     }
 
     [Fact]
@@ -60,7 +62,7 @@ public class UpdateProductCommandHandlerTests
             Name = "X",
             Description = "Y",
             ImageUrl = "img",
-            CategoryIds = new List<Guid>()
+            CategoryId = Guid.NewGuid()
         };
 
         // Act
@@ -71,24 +73,22 @@ public class UpdateProductCommandHandlerTests
     }
 
     [Fact]
-    public async Task Handle_Should_Update_Categories_When_Valid_CategoryIds_Provided()
+    public async Task Handle_Should_Update_Category_When_Valid_CategoryId_Provided()
     {
         // Arrange
         var categoryId = Guid.NewGuid();
         var category = new Category("Cat", "desc");
         typeof(Category).GetProperty("Id")!.SetValue(category, categoryId);
 
-        var product = new Product("Producto X", "desc", null);
+        var product = new Product("Producto X", "desc", categoryId);
 
         var prodRepo = new Mock<IProductRepository>();
         prodRepo.Setup(r => r.GetByIdWithCategoriesAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(product);
 
         var catRepo = new Mock<ICategoryRepository>();
-        catRepo.Setup(r => r.ListAsync(
-            It.IsAny<System.Linq.Expressions.Expression<Func<Category, bool>>>(),
-            It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Category> { category });
+        catRepo.Setup(r => r.GetByIdAsync(categoryId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(category);
 
         var uow = new Mock<IUnitOfWork>();
         uow.Setup(u => u.ProductRepository).Returns(prodRepo.Object);
@@ -102,13 +102,13 @@ public class UpdateProductCommandHandlerTests
             Name = "Actualizado",
             Description = "Nuevo desc",
             ImageUrl = "img.png",
-            CategoryIds = new List<Guid> { categoryId }
+            CategoryId = categoryId
         };
 
         // Act
         await handler.Handle(command, default);
 
         // Assert
-        product.Categories.Should().ContainSingle(c => c.Id == categoryId);
+        product.CategoryId.Should().Be(categoryId);
     }
 }

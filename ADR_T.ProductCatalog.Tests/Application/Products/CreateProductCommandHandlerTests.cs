@@ -8,67 +8,121 @@ namespace ADR_T.ProductCatalog.Tests.Application.Products;
 
 public class CreateProductCommandHandlerTests
 {
-    [Fact]
-    public async Task Handle_Should_Create_Product_Without_Categories()
+    private readonly Mock<IUnitOfWork> _mockUnitOfWork;
+    private readonly Mock<IProductRepository> _mockProductRepository;
+    private readonly Mock<ICategoryRepository> _mockCategoryRepository;
+    private readonly CreateProductCommandHandler _handler;
+    private readonly CreateProductCommandValidator _validator;
+
+    public CreateProductCommandHandlerTests()
     {
-        // Arrange
-        var repo = new Mock<IProductRepository>();
-        var catRepo = new Mock<ICategoryRepository>();
-        var uow = new Mock<IUnitOfWork>();
+        _mockUnitOfWork = new Mock<IUnitOfWork>();
+        _mockProductRepository = new Mock<IProductRepository>();
+        _mockCategoryRepository = new Mock<ICategoryRepository>();
 
-        uow.Setup(u => u.ProductRepository).Returns(repo.Object);
-        uow.Setup(u => u.CategoryRepository).Returns(catRepo.Object);
-        uow.Setup(u => u.CommitAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        _mockUnitOfWork.Setup(uow => uow.ProductRepository).Returns(_mockProductRepository.Object);
+        _mockUnitOfWork.Setup(uow => uow.CategoryRepository).Returns(_mockCategoryRepository.Object);
 
-        var handler = new CreateProductCommandHandler(uow.Object);
-
-        var command = new CreateProductCommand("Producto A", "Desc", null, new List<Guid>());
-
-        // Act
-        var result = await handler.Handle(command, default);
-
-        // Assert
-        result.Should().NotBeEmpty();
-        repo.Verify(r => r.AddAsync(It.Is<Product>(p =>
-            p.Name == command.Name &&
-            p.Description == command.Description &&
-            p.ImageUrl == command.ImageUrl &&
-            p.Categories.Count == 0
-        ), It.IsAny<CancellationToken>()), Times.Once);
+        _handler = new CreateProductCommandHandler(_mockUnitOfWork.Object);
+        _validator = new CreateProductCommandValidator(_mockUnitOfWork.Object);
     }
 
     [Fact]
-    public async Task Handle_Should_Associate_Categories_When_Valid_CategoryIds_Provided()
+    public async Task Handle_ValidCommand_ShouldCreateProductAndReturnId()
     {
         // Arrange
         var categoryId = Guid.NewGuid();
-        var category = new Category("Cat", "desc");
-        typeof(Category).GetProperty("Id")!.SetValue(category, categoryId);
+        var category = new Category("Test Category");
 
-        var catRepo = new Mock<ICategoryRepository>();
-        catRepo.Setup(r => r.ListAsync(
-            It.IsAny<System.Linq.Expressions.Expression<Func<Category, bool>>>(),
-            It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<Category> { category });
+        _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(categoryId, It.IsAny<CancellationToken>()))
+                               .ReturnsAsync(category);
 
-        var prodRepo = new Mock<IProductRepository>();
-        var uow = new Mock<IUnitOfWork>();
-        uow.Setup(u => u.ProductRepository).Returns(prodRepo.Object);
-        uow.Setup(u => u.CategoryRepository).Returns(catRepo.Object);
-        uow.Setup(u => u.CommitAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        var command = new CreateProductCommand("Test Product", "Test Description", "test.jpg", categoryId);
 
-        var handler = new CreateProductCommandHandler(uow.Object);
+        _mockProductRepository
+            .Setup(repo => repo.AddAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Product p, CancellationToken _) => p);
 
-        var command = new CreateProductCommand("Producto B", "Desc", "img.jpg", new List<Guid> { categoryId });
+        _mockUnitOfWork.Setup(uow => uow.CommitAsync(It.IsAny<CancellationToken>()))
+                       .ReturnsAsync(1);
 
         // Act
-        var result = await handler.Handle(command, default);
+        var result = await _handler.Handle(command, CancellationToken.None);
 
         // Assert
         result.Should().NotBeEmpty();
-        prodRepo.Verify(r => r.AddAsync(It.Is<Product>(p =>
-            p.Categories.Count == 1 &&
-            p.Categories.First().Id == categoryId
+        _mockProductRepository.Verify(repo => repo.AddAsync(It.Is<Product>(p =>
+            p.Name == command.Name &&
+            p.Description == command.Description &&
+            p.ImageUrl == command.ImageUrl &&
+            p.CategoryId == command.CategoryId
         ), It.IsAny<CancellationToken>()), Times.Once);
+
+        _mockUnitOfWork.Verify(uow => uow.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_InvalidCategoryId_ShouldThrowValidationException()
+    {
+        // Arrange
+        var invalidCategoryId = Guid.NewGuid();
+        _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(invalidCategoryId, It.IsAny<CancellationToken>()))
+                               .ReturnsAsync((Category?)null);
+
+        var command = new CreateProductCommand("Test Product", "Test Description", "test.jpg", invalidCategoryId);
+
+        // Act
+        var validationResult = await _validator.ValidateAsync(command);
+
+        // Assert
+        validationResult.IsValid.Should().BeFalse();
+        validationResult.Errors.Should().Contain(e =>
+            e.PropertyName == nameof(command.CategoryId) &&
+            e.ErrorMessage == "La categoría especificada no existe.");
+    }
+
+    [Fact]
+    public async Task Handle_EmptyName_ShouldThrowValidationException()
+    {
+        // Arrange
+        var categoryId = Guid.NewGuid();
+        var category = new Category("Test Category");
+
+        _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(categoryId, It.IsAny<CancellationToken>()))
+                               .ReturnsAsync(category);
+
+        var command = new CreateProductCommand("", "Test Description", "test.jpg", categoryId);
+
+        // Act
+        var validationResult = await _validator.ValidateAsync(command);
+
+        // Assert
+        validationResult.IsValid.Should().BeFalse();
+        validationResult.Errors.Should().Contain(e =>
+            e.PropertyName == nameof(command.Name) &&
+            e.ErrorMessage == "El nombre es requerido.");
+    }
+
+    [Fact]
+    public async Task Handle_NameTooLong_ShouldThrowValidationException()
+    {
+        // Arrange
+        var categoryId = Guid.NewGuid();
+        var category = new Category("Test Category");
+
+        _mockCategoryRepository.Setup(repo => repo.GetByIdAsync(categoryId, It.IsAny<CancellationToken>()))
+                               .ReturnsAsync(category);
+
+        var longName = new string('a', 101);
+        var command = new CreateProductCommand(longName, "Test Description", "test.jpg", categoryId);
+
+        // Act
+        var validationResult = await _validator.ValidateAsync(command);
+
+        // Assert
+        validationResult.IsValid.Should().BeFalse();
+        validationResult.Errors.Should().Contain(e =>
+            e.PropertyName == nameof(command.Name) &&
+            e.ErrorMessage == "El nombre no debe exceder los 100 caracteres.");
     }
 }

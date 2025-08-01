@@ -17,20 +17,14 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
     public async Task<Product?> GetByIdWithCategoriesAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Products
-            .Include(p => p.Categories)
+            .Include(p => p.Category) 
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
-    }
-    public async Task<IEnumerable<Product>> GetAllWithCategoriesAsync(CancellationToken cancellationToken = default)
-    {
-        return await _dbContext.Products
-            .Include(p => p.Categories)
-            .ToListAsync(cancellationToken);
     }
 
     public async Task<IEnumerable<Product>> GetAllWithCategoriesPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         return await _dbContext.Products
-            .Include(p => p.Categories)
+            .Include(p => p.Category) 
             .OrderBy(p => p.Name) 
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)

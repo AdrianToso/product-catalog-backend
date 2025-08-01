@@ -24,6 +24,18 @@ builder.Services.AddSwaggerGen(options =>
 
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
+var myCorsPolicy = "MyCorsPolicy";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: myCorsPolicy,
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:4200")
+                   .AllowAnyHeader()
+                   .AllowAnyMethod();
+        });
+});
 
 var app = builder.Build();
 
@@ -42,6 +54,8 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection(); 
+
+app.UseCors(myCorsPolicy);
 
 app.UseAuthorization();
 

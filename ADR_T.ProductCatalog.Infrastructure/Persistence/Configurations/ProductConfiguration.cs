@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace ADR_T.ProductCatalog.Infrastructure.Persistence.Configurations;
+
 public class ProductConfiguration : IEntityTypeConfiguration<Product>
 {
     public void Configure(EntityTypeBuilder<Product> builder)
@@ -19,13 +20,11 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .IsRequired();
 
         builder.Property(p => p.ImageUrl)
-            .IsRequired(false); 
+            .IsRequired(false);
 
-        // Configuración de la relación muchos-a-muchos con Category.
-        // EF Core 8 crea la tabla de unión "CategoryProduct" implícitamente.
-        // Se puede personalizar si es necesario.
-        builder.HasMany(p => p.Categories)
-            .WithMany(c => c.Products)
-            .UsingEntity(j => j.ToTable("ProductCategories"));
+        builder.HasOne(p => p.Category) 
+            .WithMany(c => c.Products) 
+            .HasForeignKey(p => p.CategoryId) 
+            .IsRequired(); 
     }
 }

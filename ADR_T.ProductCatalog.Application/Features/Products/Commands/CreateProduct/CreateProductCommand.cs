@@ -6,4 +6,4 @@ public record CreateProductCommand(
     string Name,
     string Description,
     string? ImageUrl,
-    List<Guid>? CategoryIds) : IRequest<Guid>;
+    Guid CategoryId) : IRequest<Guid>;

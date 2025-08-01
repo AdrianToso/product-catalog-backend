@@ -17,20 +17,12 @@ public class CreateProductCommandValidator : AbstractValidator<CreateProductComm
         RuleFor(x => x.Description)
             .MaximumLength(500).WithMessage("La descripción no debe exceder los 500 caracteres.");
 
-        RuleFor(x => x.CategoryIds)
-          .MustAsync(BeExistingCategories)
-          .WithMessage("Una o más de las categorías especificadas no existen.");
+        RuleFor(x => x.CategoryId)
+           .NotEmpty().WithMessage("El ID de la categoría es requerido.")
+           .MustAsync(BeExistingCategory).WithMessage("La categoría especificada no existe.");
     }
-    private async Task<bool> BeExistingCategories(List<Guid> categoryIds, CancellationToken cancellationToken)
+    private async Task<bool> BeExistingCategory(Guid categoryId, CancellationToken cancellationToken)
     {
-        if (categoryIds == null || !categoryIds.Any())
-        {
-            return true;
-        }
-
-        var existingCategories = await _unitOfWork.CategoryRepository
-            .ListAsync(c => categoryIds.Contains(c.Id), cancellationToken);
-
-        return existingCategories.Count == categoryIds.Distinct().Count();
+        return await _unitOfWork.CategoryRepository.GetByIdAsync(categoryId, cancellationToken) != null;
     }
 }

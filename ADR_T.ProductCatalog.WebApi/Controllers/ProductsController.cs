@@ -1,4 +1,6 @@
-﻿using ADR_T.ProductCatalog.Application.Features.Products.Commands.CreateProduct;
+﻿using ADR_T.ProductCatalog.Application.DTOs;
+using ADR_T.ProductCatalog.Application.DTOs.Common;
+using ADR_T.ProductCatalog.Application.Features.Products.Commands.CreateProduct;
 using ADR_T.ProductCatalog.Application.Features.Products.Commands.DeleteProduct;
 using ADR_T.ProductCatalog.Application.Features.Products.Commands.UpdateProduct;
 using ADR_T.ProductCatalog.Application.Features.Products.Queries.GetAllProducts;
@@ -6,7 +8,7 @@ using ADR_T.ProductCatalog.Application.Features.Products.Queries.GetProductById;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ADR_T.ProductCatalog.WebAPI.Controllers;
+namespace ADR_T.ProductCatalog.WebApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -19,70 +21,83 @@ public class ProductsController : ControllerBase
         _mediator = mediator;
     }
 
-    [HttpPost]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> CreateProduct([FromBody] CreateProductCommand command)
+    /// <summary>
+    /// Obtiene una lista paginada de productos.
+    /// </summary>
+    /// <param name="pageNumber">Número de página (por defecto 1).</param>
+    /// <param name="pageSize">Tamaño de página (por defecto 10).</param>
+    /// <returns>Una respuesta paginada con DTOs de producto.</returns>
+    [HttpGet]
+    [ProducesResponseType(typeof(PagedResponse<ProductDto>), 200)]
+    public async Task<ActionResult<PagedResponse<ProductDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
-        var productId = await _mediator.Send(command);
-        return CreatedAtAction(nameof(GetProductById), new { id = productId }, new { id = productId });
+        var query = new GetAllProductsQuery { PageNumber = pageNumber, PageSize = pageSize };
+        var response = await _mediator.Send(query);
+        return Ok(response);
     }
 
-    [HttpGet("{id:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> GetProductById(Guid id)
+    /// <summary>
+    /// Obtiene un producto por su ID.
+    /// </summary>
+    /// <param name="id">ID del producto.</param>
+    /// <returns>El DTO del producto.</returns>
+    [HttpGet("{id}")]
+    [ProducesResponseType(typeof(ProductDto), 200)]
+    [ProducesResponseType(404)]
+    public async Task<ActionResult<ProductDto>> GetById(Guid id)
     {
-        var product = await _mediator.Send(new GetProductByIdQuery(id));
-
+       
+        var query = new GetProductByIdQuery(id);
+        var product = await _mediator.Send(query);
         return Ok(product);
     }
 
-    [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetAllProducts([FromQuery] GetAllProductsQuery query)
+    /// <summary>
+    /// Crea un nuevo producto.
+    /// </summary>
+    /// <param name="command">Comando con los datos del nuevo producto.</param>
+    /// <returns>El ID del producto creado.</returns>
+    [HttpPost]
+    [ProducesResponseType(typeof(Guid), 201)]
+    [ProducesResponseType(400)]
+    public async Task<ActionResult<Guid>> Create([FromBody] CreateProductCommand command)
     {
-        var products = await _mediator.Send(query);
-        return Ok(products);
+        var productId = await _mediator.Send(command);
+        return CreatedAtAction(nameof(GetById), new { id = productId }, productId);
     }
 
-    [HttpPut("{id:guid}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateProduct(Guid id, [FromBody] UpdateProductCommand command)
+    /// <summary>
+    /// Actualiza un producto existente.
+    /// </summary>
+    /// <param name="id">ID del producto a actualizar.</param>
+    /// <param name="command">Comando con los datos actualizados del producto.</param>
+    /// <returns>No Content si la actualización fue exitosa.</returns>
+    [HttpPut("{id}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    public async Task<ActionResult> Update(Guid id, [FromBody] UpdateProductCommand command)
     {
         if (id != command.Id)
         {
-            return BadRequest("El ID en la URL no coincide con el ID del producto en el cuerpo de la solicitud.");
+            return BadRequest();
         }
-
         await _mediator.Send(command);
-        return Ok(new { message = $"Producto con ID {id} actualizado correctamente." });
-    }
-
-    [HttpDelete("{id:guid}")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> DeleteProduct(Guid id)
-    {
-        await _mediator.Send(new DeleteProductCommand(id));
         return NoContent();
     }
-    [HttpPost("upload")]
-    public async Task<IActionResult> UploadImage(IFormFile file)
+
+    /// <summary>
+    /// Elimina un producto.
+    /// </summary>
+    /// <param name="id">ID del producto a eliminar.</param>
+    /// <returns>No Content si la eliminación fue exitosa.</returns>
+    [HttpDelete("{id}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(404)]
+    public async Task<ActionResult> Delete(Guid id)
     {
-        if (file == null || file.Length == 0)
-            return BadRequest("Invalid file");
-
-        var fileName = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-        var filePath = Path.Combine("wwwroot/images", fileName);
-
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
-
-        return Ok(new { ImageUrl = $"/images/{fileName}" });
+        var command = new DeleteProductCommand(id);
+        await _mediator.Send(command);
+        return NoContent();
     }
 }

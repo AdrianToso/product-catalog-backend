@@ -16,28 +16,7 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
 
     public async Task<Guid> Handle(CreateProductCommand request, CancellationToken cancellationToken)
     {
-        var product = new Product(request.Name, request.Description, request.ImageUrl);
-
-        if (request.CategoryIds != null && request.CategoryIds.Any())
-        {
-            var categories = await _unitOfWork.CategoryRepository.ListAsync(c => request.CategoryIds.Contains(c.Id), cancellationToken);
-
-            if (categories.Count() != request.CategoryIds.Count())
-            {
-                var missingCategoryIds = request.CategoryIds.Except(categories.Select(c => c.Id)).ToList();
-                if (missingCategoryIds.Any())
-                {
-                    var errors = new Dictionary<string, string[]>();
-                    errors.Add(nameof(request.CategoryIds), new[] { $"Las categorías con IDs: {string.Join(", ", missingCategoryIds)} no fueron encontradas." });
-                    throw new ValidationException(errors);
-                }
-            }
-
-            foreach (var category in categories)
-            {
-                product.Categories.Add(category);
-            }
-        }
+        var product = new Product(request.Name, request.Description, request.CategoryId, request.ImageUrl);
 
         await _unitOfWork.ProductRepository.AddAsync(product, cancellationToken);
         await _unitOfWork.CommitAsync(cancellationToken);

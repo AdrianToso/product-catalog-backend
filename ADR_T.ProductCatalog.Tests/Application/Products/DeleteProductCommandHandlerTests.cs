@@ -13,7 +13,7 @@ public class DeleteProductCommandHandlerTests
     public async Task Handle_Should_Delete_Product_When_Found()
     {
         // Arrange
-        var product = new Product("Producto A", "desc", null);
+        var product = new Product("Producto A", "desc", Guid.NewGuid());
 
         var repo = new Mock<IProductRepository>();
         repo.Setup(r => r.GetByIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
@@ -25,7 +25,7 @@ public class DeleteProductCommandHandlerTests
 
         var handler = new DeleteProductCommandHandler(uow.Object);
 
-        var command = new DeleteProductCommand(Guid.NewGuid()); 
+        var command = new DeleteProductCommand(Guid.NewGuid());
 
         // Act
         await handler.Handle(command, default);
@@ -56,3 +56,4 @@ public class DeleteProductCommandHandlerTests
         await act.Should().ThrowAsync<NotFoundException>();
     }
 }
+

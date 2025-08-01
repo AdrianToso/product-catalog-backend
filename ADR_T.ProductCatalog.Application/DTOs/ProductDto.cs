@@ -6,5 +6,5 @@ public record ProductDto
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
-    public List<string> Categories { get; set; } = new List<string>();
+    public CategoryDto Category { get; set; } = null!;
 }

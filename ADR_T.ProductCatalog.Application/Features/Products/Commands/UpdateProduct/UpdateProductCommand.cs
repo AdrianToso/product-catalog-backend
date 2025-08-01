@@ -8,5 +8,5 @@ public record UpdateProductCommand : IRequest
     public string Name { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public string? ImageUrl { get; set; }
-    public List<Guid>? CategoryIds { get; set; } 
+    public Guid CategoryId { get; set; }
 }

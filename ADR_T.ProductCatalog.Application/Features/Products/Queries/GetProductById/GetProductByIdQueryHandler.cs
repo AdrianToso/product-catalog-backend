@@ -1,9 +1,12 @@
-﻿using ADR_T.ProductCatalog.Application.DTOs; 
+﻿using ADR_T.ProductCatalog.Application.DTOs;
 using ADR_T.ProductCatalog.Core.Domain.Entities;
 using ADR_T.ProductCatalog.Core.Domain.Exceptions;
 using ADR_T.ProductCatalog.Core.Domain.Interfaces;
-using AutoMapper; 
-using MediatR; 
+using AutoMapper;
+using MediatR;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ADR_T.ProductCatalog.Application.Features.Products.Queries.GetProductById;
 

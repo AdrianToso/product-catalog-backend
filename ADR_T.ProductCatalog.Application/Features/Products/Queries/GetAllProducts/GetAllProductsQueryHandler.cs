@@ -23,6 +23,7 @@ public class GetAllProductsQueryHandler : IRequestHandler<GetAllProductsQuery, P
         var pageSize = request.PageSize > maxPageSize ? maxPageSize : request.PageSize;
         var pageNumber = request.PageNumber > 0 ? request.PageNumber : 1;
 
+
         var totalCount = await _unitOfWork.ProductRepository.CountAsync(cancellationToken);
         var products = await _unitOfWork.ProductRepository.GetAllWithCategoriesPagedAsync(pageNumber, pageSize, cancellationToken);
         var productDtos = _mapper.Map<List<ProductDto>>(products);
