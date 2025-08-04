@@ -13,6 +13,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ADR_T.ProductCatalog.WebApi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ADR_T.ProductCatalog.Tests", "ADR_T.ProductCatalog.Tests\ADR_T.ProductCatalog.Tests.csproj", "{22693403-679D-4A05-8554-690B66CC1CF2}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Elementos de la solución", "Elementos de la solución", "{D107F4C8-89CC-BEA8-D3D7-CA6B7733353D}"
+	ProjectSection(SolutionItems) = preProject
+		ADR_T.ProductCatalog_DataSeed.sql = ADR_T.ProductCatalog_DataSeed.sql
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
