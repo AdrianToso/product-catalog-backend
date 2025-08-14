@@ -6,6 +6,7 @@ using ADR_T.ProductCatalog.Application.Features.Products.Commands.UpdateProduct;
 using ADR_T.ProductCatalog.Application.Features.Products.Queries.GetAllProducts;
 using ADR_T.ProductCatalog.Application.Features.Products.Queries.GetProductById;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ADR_T.ProductCatalog.WebApi.Controllers;
@@ -28,6 +29,7 @@ public class ProductsController : ControllerBase
     /// <param name="pageSize">Tamaño de página (por defecto 10).</param>
     /// <returns>Una respuesta paginada con DTOs de producto.</returns>
     [HttpGet]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(PagedResponse<ProductDto>), 200)]
     public async Task<ActionResult<PagedResponse<ProductDto>>> GetAll([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
     {
@@ -42,6 +44,7 @@ public class ProductsController : ControllerBase
     /// <param name="id">ID del producto.</param>
     /// <returns>El DTO del producto.</returns>
     [HttpGet("{id}")]
+    [AllowAnonymous]
     [ProducesResponseType(typeof(ProductDto), 200)]
     [ProducesResponseType(404)]
     public async Task<ActionResult<ProductDto>> GetById(Guid id)
@@ -58,6 +61,7 @@ public class ProductsController : ControllerBase
     /// <param name="command">Comando con los datos del nuevo producto.</param>
     /// <returns>El ID del producto creado.</returns>
     [HttpPost]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(typeof(Guid), 201)]
     [ProducesResponseType(400)]
     public async Task<ActionResult<Guid>> Create([FromBody] CreateProductCommand command)
@@ -73,6 +77,7 @@ public class ProductsController : ControllerBase
     /// <param name="command">Comando con los datos actualizados del producto.</param>
     /// <returns>No Content si la actualización fue exitosa.</returns>
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin,Editor")]
     [ProducesResponseType(204)]
     [ProducesResponseType(400)]
     [ProducesResponseType(404)]
@@ -92,6 +97,7 @@ public class ProductsController : ControllerBase
     /// <param name="id">ID del producto a eliminar.</param>
     /// <returns>No Content si la eliminación fue exitosa.</returns>
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin")]
     [ProducesResponseType(204)]
     [ProducesResponseType(404)]
     public async Task<ActionResult> Delete(Guid id)
