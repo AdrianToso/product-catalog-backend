@@ -31,8 +31,4 @@ public class ProductRepository : GenericRepository<Product>, IProductRepository
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<int> CountAsync(CancellationToken cancellationToken = default)
-    {
-        return await _dbContext.Products.CountAsync(cancellationToken);
-    }
 }

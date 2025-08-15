@@ -18,20 +18,8 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, A
 
     public async Task<AuthResultDto> Handle(RegisterUserCommand request, CancellationToken cancellationToken)
     {
-        var errors = new Dictionary<string, string[]>();
-
-        var existingByUser = await _userRepository.GetByUsernameAsync(request.Username);
-        if (existingByUser != null)
-            errors["Username"] = new[] { "El usuario ya existe." };
-
-        var existingByEmail = await _userRepository.GetUserByEmailAsync(request.Email);
-        if (existingByEmail != null)
-            errors["Email"] = new[] { "El email ya está en uso." };
-
-        if (errors.Any())
-            throw new ValidationException(errors);
-
         var user = await _userRepository.RegisterUserAsync(request.Username, request.Email, request.Password);
+        // Esta comprobación se mantiene por si el registro falla por otra razón no relacionada a validación.
         if (user == null)
             throw new ValidationException(new Dictionary<string, string[]>
             {

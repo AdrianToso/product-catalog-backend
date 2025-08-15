@@ -3,7 +3,7 @@ using ADR_T.ProductCatalog.Application.Features.Auth.Commands.RegisterUser;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ADR_T.ProductCatalog.API.Controllers;
+namespace ADR_T.ProductCatalog.WebApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]

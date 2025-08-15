@@ -3,10 +3,10 @@ using FluentValidation;
 
 namespace ADR_T.ProductCatalog.Application.Features.Products.Commands.UpdateProduct;
 
-public class UpdateProductCommandValidator : AbstractValidator<UpdateProductCommand>
+public class UpdateProductCommandValidator : ProductCommandValidatorBase<UpdateProductCommand>
 {
     private readonly IUnitOfWork _unitOfWork;
-    public UpdateProductCommandValidator(IUnitOfWork unitOfWork)
+    public UpdateProductCommandValidator(IUnitOfWork unitOfWork) : base(unitOfWork)
     {
         _unitOfWork = unitOfWork;
 
@@ -25,8 +25,4 @@ public class UpdateProductCommandValidator : AbstractValidator<UpdateProductComm
             .MustAsync(BeExistingCategory).WithMessage("La categoría especificada no existe.");
     }
 
-    private async Task<bool> BeExistingCategory(Guid categoryId, CancellationToken cancellationToken)
-    {
-        return await _unitOfWork.CategoryRepository.GetByIdAsync(categoryId, cancellationToken) != null;
-    }
 }
