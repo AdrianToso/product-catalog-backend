@@ -59,5 +59,13 @@ public class Product: EntityBase
         }
         CategoryId = categoryId;
     }
+    public void SetImageUrl(string url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+            throw new DomainException("La URL de la imagen no puede ser vacía.");
+
+        ImageUrl = url;
+        FechacActualizacion = DateTime.UtcNow;
+    }
 }
 

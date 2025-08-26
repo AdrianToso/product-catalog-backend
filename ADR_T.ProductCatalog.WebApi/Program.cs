@@ -1,16 +1,18 @@
 using ADR_T.ProductCatalog.Application;
 using ADR_T.ProductCatalog.Infrastructure;
 using ADR_T.ProductCatalog.Infrastructure.Persistence;
+using ADR_T.ProductCatalog.WebApi.Filters;
 using ADR_T.ProductCatalog.WebApi.Middleware;
 using ADR_T.ProductCatalog.WebAPI.Middleware;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http.Features;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuración de Serilog ANTES de registrar servicios
+// Configuración de Serilog
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
@@ -20,6 +22,22 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
+// Configurar límites de Kestrel
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.Limits.MaxRequestBodySize = 52428800; // 50 MB
+});
+
+// Configurar límites de formularios
+builder.Services.Configure<FormOptions>(options =>
+{
+    options.MultipartBodyLengthLimit = 52428800; // 50 MB
+    options.MultipartHeadersCountLimit = 100;
+    options.MultipartHeadersLengthLimit = 16384;
+    options.ValueLengthLimit = 134217728; // 128 MB
+    options.BufferBodyLengthLimit = 134217728; // 128 MB
+});
+
 builder.Services.AddControllers(options =>
 {
     options.Filters.Add(new ProducesAttribute("application/json"));
@@ -28,19 +46,21 @@ builder.Services.AddControllers(options =>
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
-    options.SwaggerDoc("v1", new Microsoft.OpenApi.Models.OpenApiInfo
+    options.SwaggerDoc("v1", new OpenApiInfo
     {
         Title = "Product Catalog API",
         Version = "v1",
-        Description = "API para gestión de productos y categorías ",
-        Contact = new Microsoft.OpenApi.Models.OpenApiContact
+        Description = "API para gestión de productos y categorías",
+        Contact = new OpenApiContact
         {
             Name = "Adrián Toso",
             Url = new Uri("https://www.linkedin.com/in/adrian-toso-24b96419/")
         }
     });
 
-    // Definición de seguridad para JWT
+    // Agrega el filtro para manejar archivos
+    options.OperationFilter<SwaggerFileOperationFilter>();
+
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         In = ParameterLocation.Header,
@@ -50,7 +70,6 @@ builder.Services.AddSwaggerGen(options =>
         Scheme = "Bearer"
     });
 
-    // Requisito global para JWT
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -66,7 +85,6 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 
-    // Comentarios XML
     var xmlFilename = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
     var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
     options.IncludeXmlComments(xmlPath);
@@ -82,8 +100,8 @@ builder.Services.AddCors(options =>
         policy =>
         {
             policy.WithOrigins("http://localhost:4200")
-                     .AllowAnyHeader()
-                     .AllowAnyMethod();
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
         });
 });
 
@@ -116,6 +134,9 @@ if (app.Environment.IsDevelopment())
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.UseHttpsRedirection();
+
+app.UseStaticFiles();
+
 app.UseCors(myCorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();

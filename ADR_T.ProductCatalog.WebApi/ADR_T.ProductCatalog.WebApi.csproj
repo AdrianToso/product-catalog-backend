@@ -26,4 +26,8 @@
     <ProjectReference Include="..\ADR_T.ProductCatalog.Infrastructure\ADR_T.ProductCatalog.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\images\products\" />
+  </ItemGroup>
+
 </Project>

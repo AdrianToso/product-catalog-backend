@@ -23,6 +23,8 @@ public static class DependencyInjection
 
         services.AddTransient<ITokenService, TokenService>();
         services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IFileStorageService, LocalFileStorageService>();
+
 
         services.AddScoped<DataSeeder>();
 
