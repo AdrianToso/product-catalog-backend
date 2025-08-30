@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 
 namespace ADR_T.ProductCatalog.Application.Features.Auth.Commands.RegisterUser;
 

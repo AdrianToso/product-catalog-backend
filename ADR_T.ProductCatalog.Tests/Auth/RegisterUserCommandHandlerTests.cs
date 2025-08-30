@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Application.DTOs.Auth;
+using ADR_T.ProductCatalog.Application.DTOs.Auth;
 using ADR_T.ProductCatalog.Application.Features.Auth.Commands.RegisterUser;
 using ADR_T.ProductCatalog.Core.Domain.Entities;
 using ADR_T.ProductCatalog.Core.Domain.Exceptions;

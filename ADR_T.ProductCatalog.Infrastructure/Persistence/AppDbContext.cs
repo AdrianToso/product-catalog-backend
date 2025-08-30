@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Core.Domain.Entities;
+using ADR_T.ProductCatalog.Core.Domain.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;

@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Application.Common.Helpers;
+using ADR_T.ProductCatalog.Application.Common.Helpers;
 using ADR_T.ProductCatalog.Core.Domain.Interfaces;
 using FluentValidation;
 

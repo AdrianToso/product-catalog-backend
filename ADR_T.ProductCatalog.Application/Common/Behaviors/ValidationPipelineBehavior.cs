@@ -1,6 +1,6 @@
-﻿using FluentValidation; 
-using MediatR; 
-using ValidationException = ADR_T.ProductCatalog.Core.Domain.Exceptions.ValidationException; 
+using FluentValidation;
+using MediatR;
+using ValidationException = ADR_T.ProductCatalog.Core.Domain.Exceptions.ValidationException;
 
 namespace ADR_T.ProductCatalog.Application.Common.Behaviors;
 
@@ -25,7 +25,7 @@ public class ValidationPipelineBehavior<TRequest, TResponse> : IPipelineBehavior
 
             if (failures.Any())
             {
-     
+
                 var errorsDictionary = failures
                     .GroupBy(e => e.PropertyName)
                     .ToDictionary(
@@ -33,7 +33,7 @@ public class ValidationPipelineBehavior<TRequest, TResponse> : IPipelineBehavior
                         group => group.Select(e => e.ErrorMessage).ToArray()
                     );
 
-                throw new ValidationException(errorsDictionary); 
+                throw new ValidationException(errorsDictionary);
             }
         }
         return await next();

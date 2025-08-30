@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Application.DTOs.Auth;
+using ADR_T.ProductCatalog.Application.DTOs.Auth;
 using ADR_T.ProductCatalog.Core.Domain.Exceptions;
 using ADR_T.ProductCatalog.Core.Domain.Interfaces;
 using MediatR;

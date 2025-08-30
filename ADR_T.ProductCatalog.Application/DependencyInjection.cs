@@ -1,9 +1,9 @@
-﻿using AutoMapper; 
-using FluentValidation; 
+using AutoMapper;
+using FluentValidation;
 using MediatR;
-using Microsoft.Extensions.DependencyInjection; 
-using System.Reflection; 
-using ADR_T.ProductCatalog.Application.Common.Behaviors; 
+using Microsoft.Extensions.DependencyInjection;
+using System.Reflection;
+using ADR_T.ProductCatalog.Application.Common.Behaviors;
 namespace ADR_T.ProductCatalog.Application;
 
 public static class DependencyInjection
@@ -21,7 +21,7 @@ public static class DependencyInjection
 
         var mapperConfiguration = new MapperConfiguration(cfg =>
         {
-            cfg.AddMaps(Assembly.GetExecutingAssembly()); 
+            cfg.AddMaps(Assembly.GetExecutingAssembly());
         });
 
         services.AddSingleton(mapperConfiguration);

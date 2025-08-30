@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Core.Domain.Entities;
+using ADR_T.ProductCatalog.Core.Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -22,9 +22,9 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
         builder.Property(p => p.ImageUrl)
             .IsRequired(false);
 
-        builder.HasOne(p => p.Category) 
-            .WithMany(c => c.Products) 
-            .HasForeignKey(p => p.CategoryId) 
-            .IsRequired(); 
+        builder.HasOne(p => p.Category)
+            .WithMany(c => c.Products)
+            .HasForeignKey(p => p.CategoryId)
+            .IsRequired();
     }
 }

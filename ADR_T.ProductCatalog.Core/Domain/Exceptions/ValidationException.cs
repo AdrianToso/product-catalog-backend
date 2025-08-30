@@ -1,4 +1,4 @@
-﻿namespace ADR_T.ProductCatalog.Core.Domain.Exceptions;
+namespace ADR_T.ProductCatalog.Core.Domain.Exceptions;
 
 // Excepción de dominio para cuando ocurren fallos de validación.
 public class ValidationException : Exception

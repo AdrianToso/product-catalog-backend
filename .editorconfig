@@ -1,0 +1,21 @@
+Reglas de .NE
+root = true
+[*.cs]
+Estilo de código de C#
+csharp_style_var_for_built_in_types = true
+csharp_style_var_when_type_is_apparent = true
+csharp_style_using_directive_placement = outside_namespace
+csharp_prefer_braces = true
+csharp_prefer_static_local_functions = true
+Nombres
+dotnet_naming_rule.variables_and_fields.severity = suggestion
+dotnet_naming_rule.variables_and_fields.style = camel_case
+dotnet_naming_rule.variables_and_fields.symbols = variables_and_fields
+Espaciado y sangría
+indent_size = 4
+indent_style = space
+insert_final_newline = true
+end_of_line = crlf
+trim_trailing_whitespace = true
+Estilo de archivo
+charset = utf-8

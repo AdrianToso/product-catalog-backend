@@ -1,14 +1,14 @@
-﻿using ADR_T.ProductCatalog.Core.Domain.Exceptions;
+using ADR_T.ProductCatalog.Core.Domain.Exceptions;
 
 namespace ADR_T.ProductCatalog.Core.Domain.Entities;
 
-public class Product: EntityBase
+public class Product : EntityBase
 {
     public string Name { get; private set; }
     public string Description { get; private set; }
     public string? ImageUrl { get; private set; }
-    public Guid CategoryId { get; private set; } 
-    public Category Category { get; private set; } = null!; 
+    public Guid CategoryId { get; private set; }
+    public Category Category { get; private set; } = null!;
 
 
     private Product() { }

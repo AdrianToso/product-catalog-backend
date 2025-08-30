@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using System.Diagnostics.CodeAnalysis;
 
 namespace ADR_T.ProductCatalog.Application.Common.Helpers

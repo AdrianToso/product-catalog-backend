@@ -1,4 +1,4 @@
-﻿namespace ADR_T.ProductCatalog.Application.DTOs;
+namespace ADR_T.ProductCatalog.Application.DTOs;
 public record CategoryDto
 {
     public Guid Id { get; init; }

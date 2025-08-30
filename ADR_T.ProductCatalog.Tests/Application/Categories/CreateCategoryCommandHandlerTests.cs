@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Application.Features.Categories.Commands.CreateCategory;
+using ADR_T.ProductCatalog.Application.Features.Categories.Commands.CreateCategory;
 using ADR_T.ProductCatalog.Core.Domain.Entities;
 using ADR_T.ProductCatalog.Core.Domain.Interfaces;
 using FluentAssertions;

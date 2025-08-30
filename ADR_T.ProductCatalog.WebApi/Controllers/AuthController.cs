@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Application.Features.Auth.Commands.LoginUser;
+using ADR_T.ProductCatalog.Application.Features.Auth.Commands.LoginUser;
 using ADR_T.ProductCatalog.Application.Features.Auth.Commands.RegisterUser;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;

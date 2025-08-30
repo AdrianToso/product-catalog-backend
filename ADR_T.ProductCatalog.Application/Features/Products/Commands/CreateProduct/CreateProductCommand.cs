@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 
 namespace ADR_T.ProductCatalog.Application.Features.Products.Commands.CreateProduct;
 

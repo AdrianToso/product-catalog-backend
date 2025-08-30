@@ -1,4 +1,4 @@
-﻿namespace ADR_T.ProductCatalog.Core.Domain.Entities;
+namespace ADR_T.ProductCatalog.Core.Domain.Entities;
 
 public abstract class EntityBase
 {

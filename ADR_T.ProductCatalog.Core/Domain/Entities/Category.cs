@@ -1,7 +1,7 @@
-﻿using ADR_T.ProductCatalog.Core.Domain.Exceptions;
+using ADR_T.ProductCatalog.Core.Domain.Exceptions;
 
 namespace ADR_T.ProductCatalog.Core.Domain.Entities;
-public class Category: EntityBase
+public class Category : EntityBase
 {
     public string Name { get; private set; }
     public string? Description { get; private set; }

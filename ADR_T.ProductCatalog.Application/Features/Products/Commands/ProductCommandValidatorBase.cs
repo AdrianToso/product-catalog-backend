@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Core.Domain.Interfaces;
+using ADR_T.ProductCatalog.Core.Domain.Interfaces;
 using FluentValidation;
 
 namespace ADR_T.ProductCatalog.Application.Features.Products.Commands;

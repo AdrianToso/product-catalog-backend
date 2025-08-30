@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Application.Features.Products.Commands.CreateProduct;
+using ADR_T.ProductCatalog.Application.Features.Products.Commands.CreateProduct;
 using ADR_T.ProductCatalog.Core.Domain.Entities;
 using ADR_T.ProductCatalog.Core.Domain.Interfaces;
 using FluentAssertions;

@@ -12,7 +12,7 @@ using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ConfiguraciÛn de Serilog
+// Configuraci√≥n de Serilog
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
@@ -22,13 +22,13 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// Configurar lÌmites de Kestrel
+// Configurar l√≠mites de Kestrel
 builder.WebHost.ConfigureKestrel(options =>
 {
     options.Limits.MaxRequestBodySize = 52428800; // 50 MB
 });
 
-// Configurar lÌmites de formularios
+// Configurar l√≠mites de formularios
 builder.Services.Configure<FormOptions>(options =>
 {
     options.MultipartBodyLengthLimit = 52428800; // 50 MB
@@ -50,10 +50,10 @@ builder.Services.AddSwaggerGen(options =>
     {
         Title = "Product Catalog API",
         Version = "v1",
-        Description = "API para gestiÛn de productos y categorÌas",
+        Description = "API para gesti√≥n de productos y categor√≠as",
         Contact = new OpenApiContact
         {
-            Name = "Adri·n Toso",
+            Name = "Adri√°n Toso",
             Url = new Uri("https://www.linkedin.com/in/adrian-toso-24b96419/")
         }
     });

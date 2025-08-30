@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using ADR_T.ProductCatalog.Application.DTOs.Auth;
 
 namespace ADR_T.ProductCatalog.Application.Features.Auth.Commands.LoginUser;

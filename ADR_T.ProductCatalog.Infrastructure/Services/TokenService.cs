@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Core.Domain.Interfaces;
+using ADR_T.ProductCatalog.Core.Domain.Interfaces;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;

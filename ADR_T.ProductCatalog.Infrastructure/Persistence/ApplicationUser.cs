@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity;
 
 namespace ADR_T.ProductCatalog.Infrastructure.Persistence;
 

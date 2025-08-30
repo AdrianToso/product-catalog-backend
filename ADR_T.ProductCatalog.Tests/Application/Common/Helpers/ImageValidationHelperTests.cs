@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Application.Common.Helpers;
+using ADR_T.ProductCatalog.Application.Common.Helpers;
 using Microsoft.AspNetCore.Http;
 using Moq;
 

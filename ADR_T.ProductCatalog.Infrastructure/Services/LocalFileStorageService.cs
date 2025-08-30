@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Core.Domain.Interfaces;
+using ADR_T.ProductCatalog.Core.Domain.Interfaces;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

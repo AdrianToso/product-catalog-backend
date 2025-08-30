@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Application.DTOs;
+using ADR_T.ProductCatalog.Application.DTOs;
 using ADR_T.ProductCatalog.Application.Features.Categories.Queries.GetCategoryById;
 using ADR_T.ProductCatalog.Core.Domain.Entities;
 using ADR_T.ProductCatalog.Core.Domain.Exceptions;

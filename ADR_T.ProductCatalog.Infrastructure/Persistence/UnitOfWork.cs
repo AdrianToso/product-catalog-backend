@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Core.Domain.Interfaces;
+using ADR_T.ProductCatalog.Core.Domain.Interfaces;
 using ADR_T.ProductCatalog.Infrastructure.Repositories;
 
 namespace ADR_T.ProductCatalog.Infrastructure.Persistence;

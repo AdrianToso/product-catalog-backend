@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Application.Features.Categories.Commands.CreateCategory;
+using ADR_T.ProductCatalog.Application.Features.Categories.Commands.CreateCategory;
 using ADR_T.ProductCatalog.Application.Features.Categories.Commands.DeleteCategory;
 using ADR_T.ProductCatalog.Application.Features.Categories.Commands.UpdateCategory;
 using ADR_T.ProductCatalog.Application.Features.Categories.Queries.GetAllCategories;
@@ -11,7 +11,7 @@ namespace ADR_T.ProductCatalog.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize] 
+[Authorize]
 public class CategoriesController : ControllerBase
 {
     private readonly IMediator _mediator;

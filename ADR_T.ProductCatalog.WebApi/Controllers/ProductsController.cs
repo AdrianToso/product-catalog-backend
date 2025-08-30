@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Application.DTOs;
+using ADR_T.ProductCatalog.Application.DTOs;
 using ADR_T.ProductCatalog.Application.DTOs.Common;
 using ADR_T.ProductCatalog.Application.Features.Products.Commands.CreateProduct;
 using ADR_T.ProductCatalog.Application.Features.Products.Commands.DeleteProduct;
@@ -54,7 +54,7 @@ public class ProductsController : ControllerBase
     [ProducesResponseType(404)]
     public async Task<ActionResult<ProductDto>> GetById(Guid id)
     {
-       
+
         var query = new GetProductByIdQuery(id);
         var product = await _mediator.Send(query);
         return Ok(product);

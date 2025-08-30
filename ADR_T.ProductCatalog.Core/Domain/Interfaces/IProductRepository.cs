@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Core.Domain.Entities;
+using ADR_T.ProductCatalog.Core.Domain.Entities;
 
 namespace ADR_T.ProductCatalog.Core.Domain.Interfaces;
 
@@ -27,5 +27,5 @@ public interface IProductRepository : IRepository<Product>
     /// <param name="cancellationToken">Token de cancelación.</param>
     /// <returns>El número total de productos.</returns>
     Task<int> CountAsync(CancellationToken cancellationToken = default);
-  
+
 }

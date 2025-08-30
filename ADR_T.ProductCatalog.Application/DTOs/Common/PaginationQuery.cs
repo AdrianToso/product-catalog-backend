@@ -1,4 +1,4 @@
-﻿namespace ADR_T.ProductCatalog.Application.DTOs.Common;
+namespace ADR_T.ProductCatalog.Application.DTOs.Common;
 public abstract class PaginationQuery
 {
     private const int MaxPageSize = 50;

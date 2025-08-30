@@ -1,4 +1,4 @@
-﻿namespace ADR_T.ProductCatalog.Core.Domain.Interfaces;
+namespace ADR_T.ProductCatalog.Core.Domain.Interfaces;
 
 public interface IFileStorageService
 {

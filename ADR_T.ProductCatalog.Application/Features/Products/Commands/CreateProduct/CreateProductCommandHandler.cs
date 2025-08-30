@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Core.Domain.Entities;
+using ADR_T.ProductCatalog.Core.Domain.Entities;
 using ADR_T.ProductCatalog.Core.Domain.Exceptions; // Necesario para ValidationException
 using ADR_T.ProductCatalog.Core.Domain.Interfaces;
 using MediatR;
@@ -21,6 +21,6 @@ public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand,
         await _unitOfWork.ProductRepository.AddAsync(product, cancellationToken);
         await _unitOfWork.CommitAsync(cancellationToken);
 
-        return product.Id; 
+        return product.Id;
     }
 }

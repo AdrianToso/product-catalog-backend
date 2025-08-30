@@ -1,4 +1,4 @@
-﻿namespace ADR_T.ProductCatalog.Application.DTOs.Auth;
+namespace ADR_T.ProductCatalog.Application.DTOs.Auth;
 public class AuthResultDto
 {
     public string Token { get; set; } = string.Empty;

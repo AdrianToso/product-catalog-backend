@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Application.DTOs;
+using ADR_T.ProductCatalog.Application.DTOs;
 using ADR_T.ProductCatalog.Core.Domain.Interfaces;
 using AutoMapper;
 using MediatR;

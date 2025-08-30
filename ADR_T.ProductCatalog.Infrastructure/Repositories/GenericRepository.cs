@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Core.Domain.Entities;
+using ADR_T.ProductCatalog.Core.Domain.Entities;
 using ADR_T.ProductCatalog.Core.Domain.Interfaces;
 using ADR_T.ProductCatalog.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
@@ -54,7 +54,7 @@ public class GenericRepository<T> : IRepository<T> where T : EntityBase
     public async Task<IReadOnlyList<T>> ListPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default)
     {
         return await _context.Set<T>()
-            .OrderBy(e => e.Id) 
+            .OrderBy(e => e.Id)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);

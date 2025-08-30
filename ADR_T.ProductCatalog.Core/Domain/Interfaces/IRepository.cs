@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Core.Domain.Entities;
+using ADR_T.ProductCatalog.Core.Domain.Entities;
 using System.Linq.Expressions;
 
 namespace ADR_T.ProductCatalog.Core.Domain.Interfaces;
@@ -11,5 +11,5 @@ public interface IRepository<T> where T : EntityBase
     Task UpdateAsync(T entity, CancellationToken cancellationToken = default);
     Task DeleteAsync(T entity, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<T>> ListPagedAsync(int pageNumber, int pageSize, CancellationToken cancellationToken = default);
-    Task<int> CountAsync(CancellationToken cancellationToken = default); 
+    Task<int> CountAsync(CancellationToken cancellationToken = default);
 }

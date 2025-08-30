@@ -1,4 +1,4 @@
-﻿using ADR_T.ProductCatalog.Application.Features.Products.Commands.DeleteProduct;
+using ADR_T.ProductCatalog.Application.Features.Products.Commands.DeleteProduct;
 using ADR_T.ProductCatalog.Core.Domain.Entities;
 using ADR_T.ProductCatalog.Core.Domain.Exceptions;
 using ADR_T.ProductCatalog.Core.Domain.Interfaces;

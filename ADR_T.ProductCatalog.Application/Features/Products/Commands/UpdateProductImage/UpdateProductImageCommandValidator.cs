@@ -1,4 +1,4 @@
-﻿using FluentValidation;
+using FluentValidation;
 using Microsoft.AspNetCore.Http;
 
 namespace ADR_T.ProductCatalog.Application.Features.Products.Commands.UpdateProductImage
