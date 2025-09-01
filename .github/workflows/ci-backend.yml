@@ -30,8 +30,10 @@ jobs:
       - name: Construir proyecto
         run: dotnet build --configuration Release --no-restore
 
-      - name: Instalar la herramienta de cobertura
-        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+      - name: Instalar y configurar herramienta de cobertura
+        run: |
+          dotnet tool install -g dotnet-reportgenerator-globaltool
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
       - name: Ejecutar pruebas unitarias con cobertura
         run: dotnet test --collect:"XPlat Code Coverage"
@@ -61,14 +63,20 @@ jobs:
     steps:
       - name: Obtener código del repositorio
         uses: actions/checkout@v4
+
       - name: Configurar .NET SDK
         uses: actions/setup-dotnet@v3
         with:
           dotnet-version: '8.0.x'
+
+      - name: Restaurar dependencias de NuGet
+        run: dotnet restore
+
+      - name: Configurar Snyk
+        uses: snyk/actions/setup@master
+
       - name: Escanear en busca de vulnerabilidades
-        uses: snyk/actions/dotnet@master
-        with:
-          args: --all-projects
+        run: snyk test --all-projects
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
@@ -84,12 +92,21 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: net-app-publish
-          path: .
-      
+          path: ./publish
+
+      - name: Verificar estructura de archivos
+        run: |
+          echo "Contenido del directorio:"
+          ls -la
+          echo "Contenido de la carpeta publish:"
+          ls -la publish/
+          echo "Verificando Dockerfile:"
+          cat Dockerfile
+
       - name: Configurar Docker Buildx
         uses: docker/setup-buildx-action@v2
       
-      - name: Construir y escanear imagen de Docker
+      - name: Construir imagen de Docker
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -98,7 +115,10 @@ jobs:
           cache-to: type=gha,mode=max
           load: true
           push: false
-          
+
+      - name: Verificar imagen construida
+        run: docker images | grep product-catalog-backend
+
       - name: Escanear imagen de Docker con Trivy
         uses: aquasecurity/trivy-action@master
         with:
@@ -109,10 +129,19 @@ jobs:
           ignore-unfixed: true
           vuln-type: 'os,library'
 
+      - name: Verificar resultados de Trivy
+        run: |
+          if [ -f "trivy-image-results.sarif" ]; then
+            echo "Archivo SARIF generado correctamente"
+            cat trivy-image-results.sarif | head -20
+          else
+            echo "ERROR: Archivo SARIF no generado"
+            exit 1
+          fi
+
       - name: Subir resultados de escaneo de la imagen a GitHub
         uses: github/codeql-action/upload-sarif@v3
         if: always()
         with:
           sarif_file: 'trivy-image-results.sarif'
           category: 'trivy-image-scan'
-
