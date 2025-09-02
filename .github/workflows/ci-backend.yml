@@ -10,10 +10,9 @@ on:
       - master
       - develop
 
-# BLOQUE AÑADIDO: Otorga los permisos necesarios.
 permissions:
-  contents: read          # Permiso para clonar el repositorio.
-  security-events: write  # Permiso para subir resultados a la pestaña de Seguridad.
+  contents: read
+  security-events: write
 
 env:
   DOTNET_VERSION: '8.0.x'
@@ -175,10 +174,8 @@ jobs:
         run: |
           if [ -f "trivy-results.sarif" ]; then
             echo "Archivo SARIF generado correctamente"
-            # Verificar si hay vulnerabilidades críticas o altas
             if grep -q '"level": "error"' trivy-results.sarif; then
               echo "Se encontraron vulnerabilidades críticas/altas"
-              # Intentar usar jq si está disponible, o mostrar un mensaje genérico
               if command -v jq &> /dev/null; then
                 cat trivy-results.sarif | jq '.runs[0].results[] | select(.level == "error") | .message.text'
               else
@@ -206,3 +203,43 @@ jobs:
         with:
           sarif_file: 'trivy-results.sarif'
           category: 'container-scan'
+
+  # NUEVO JOB: Despliegue en Staging
+  deploy-staging:
+    name: Despliegue en Staging
+    runs-on: ubuntu-latest
+    environment: staging
+    needs: build-and-scan-image
+    if: github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: Obtener código del repositorio
+        uses: actions/checkout@v4
+
+      - name: Descargar artefacto de la aplicación
+        uses: actions/download-artifact@v4
+        with:
+          name: net-app-publish
+          path: ./publish
+
+      - name: Configurar variables de entorno
+        run: |
+          echo "DEPLOYMENT_ENV=staging" >> $GITHUB_ENV
+          echo "DB_CONNECTION=${{ secrets.STAGING_DB_CONNECTION }}" >> $GITHUB_ENV
+          echo "API_KEY=${{ secrets.STAGING_API_KEY }}" >> $GITHUB_ENV
+
+      - name: Verificar configuración
+        run: |
+          echo "Entorno de despliegue: $DEPLOYMENT_ENV"
+          echo "Cadena de conexión a BD: $DB_CONNECTION"
+          echo "API Key: $API_KEY"
+
+      - name: Simular despliegue en staging
+        run: |
+          echo "=== INICIO DE SIMULACIÓN DE DESPLIEGUE ==="
+          echo "1. Validando variables de entorno..."
+          echo "2. Conectando a la base de datos..."
+          echo "3. Aplicando migraciones de base de datos..."
+          echo "4. Desplegando aplicación en entorno staging..."
+          echo "5. Realizando pruebas de humo..."
+          echo "=== DESPLIEGUE SIMULADO COMPLETADO ==="
