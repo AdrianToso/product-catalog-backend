@@ -10,6 +10,11 @@ on:
       - master
       - develop
 
+# BLOQUE AÑADIDO: Otorga los permisos necesarios.
+permissions:
+  contents: read          # Permiso para clonar el repositorio.
+  security-events: write  # Permiso para subir resultados a la pestaña de Seguridad.
+
 env:
   DOTNET_VERSION: '8.0.x'
   SNYK_SEVERITY_THRESHOLD: 'high'
