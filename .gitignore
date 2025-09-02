@@ -512,3 +512,5 @@ local-coverage-report/
 
 # Mac
 .DS_Store
+
+coverage-report/
