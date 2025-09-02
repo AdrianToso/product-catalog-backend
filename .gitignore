@@ -482,3 +482,33 @@ $RECYCLE.BIN/
 
 # Vim temporary swap files
 *.swp
+# User-specific files
+.secrets
+.vs/
+
+# Build results
+[Bb]in/
+[Oo]bj/
+.artifacts/
+
+# Build results for Rider
+/artifacts
+
+# Rider
+.idea/
+*.sln.iml
+
+# Test results and coverage reports
+TestResults/
+local-coverage-report/
+*.codecov.yml
+.ncrunch/
+*.ncrunchproject
+*.orig
+/ignore.ncrunch
+
+# Tool-specific files
+.snyk
+
+# Mac
+.DS_Store
