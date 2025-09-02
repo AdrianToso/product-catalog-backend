@@ -1,3 +1,4 @@
+using System.Reflection;
 using ADR_T.ProductCatalog.Application;
 using ADR_T.ProductCatalog.Infrastructure;
 using ADR_T.ProductCatalog.Infrastructure.Persistence;
@@ -8,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.OpenApi.Models;
 using Serilog;
-using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
