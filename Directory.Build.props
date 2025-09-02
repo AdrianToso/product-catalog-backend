@@ -1,0 +1,12 @@
+<Project>
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <SystemNetHttpVersion>4.3.4</SystemNetHttpVersion>
+    <RuntimeNativeSystemNetHttpVersion>4.3.1</RuntimeNativeSystemNetHttpVersion>
+  </PropertyGroup>
+  
+  <ItemGroup>
+    <PackageVersion Include="System.Net.Http" Version="$(SystemNetHttpVersion)" />
+    <PackageVersion Include="runtime.native.System.Net.Http" Version="$(RuntimeNativeSystemNetHttpVersion)" />
+  </ItemGroup>
+</Project>
