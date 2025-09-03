@@ -514,3 +514,5 @@ local-coverage-report/
 .DS_Store
 
 coverage-report/
+.appsettings.Local.json
+

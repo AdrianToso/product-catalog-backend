@@ -12,6 +12,14 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configuración de la configuración - MODIFICACIÓN AQUÍ
+builder.Configuration
+    .SetBasePath(builder.Environment.ContentRootPath)
+    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
+    .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true) // ← NUEVA LÍNEA
+    .AddEnvironmentVariables();
+
 // Configuración de Serilog
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
