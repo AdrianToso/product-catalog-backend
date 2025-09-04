@@ -2,32 +2,39 @@
 
 <#
 .SYNOPSIS
-    Genera y abre un reporte de cobertura de pruebas en formato HTML.
+  Genera y abre un reporte de cobertura de pruebas en formato HTML.
 .DESCRIPTION
-    Este script ejecuta las pruebas con cobertura, genera un reporte HTML y lo abre en el navegador.
+  Este script es un atajo para ejecutar el script principal de cobertura
+  y abrir el informe resultante en el navegador, ignorando los umbrales de validación.
 #>
 
 # Parar en caso de error
 $ErrorActionPreference = "Stop"
 
-Write-Host "Ejecutando pruebas con cobertura..." -ForegroundColor Green
-dotnet test ADR_T.ProductCatalog.Tests/ADR_T.ProductCatalog.Tests.csproj --collect:"XPlat Code Coverage"
+Write-Host "Generando y abriendo el informe de cobertura..." -ForegroundColor Cyan
 
-# Encontrar el archivo de cobertura más reciente
-Write-Host "Buscando archivo de cobertura..." -ForegroundColor Green
-$coverageFile = Get-ChildItem -Path ADR_T.ProductCatalog.Tests/TestResults -Recurse -Filter "coverage.cobertura.xml" | Sort-Object LastWriteTime -Descending | Select-Object -First 1
+# Obtener la ruta del directorio del script actual
+$currentScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 
-if (-not $coverageFile) {
-    Write-Error "No se encontró el archivo de cobertura."
-    exit 1
+# Construir la ruta al script principal
+$mainScriptPath = Join-Path $currentScriptDir "Check-Coverage.ps1"
+
+# Ejecutar el script principal con el parámetro -OpenReport
+# Usamos 'try...finally' para asegurarnos de que el mensaje final se muestre,
+# sin importar si el script principal falla por los umbrales.
+try {
+    # El & es el operador de llamada en PowerShell, necesario para ejecutar scripts.
+    & $mainScriptPath -OpenReport
+}
+catch {
+    # Capturamos el error si los umbrales no se cumplen, pero no hacemos nada,
+    # porque el propósito de este script es solo ver el informe.
+}
+finally {
+    $solutionDir = (Resolve-Path (Join-Path $currentScriptDir "..")).Path
+    $htmlReportDir = Join-Path $solutionDir "coverage-report"
+    Write-Host "Proceso finalizado. El informe está disponible en: '$htmlReportDir'" -ForegroundColor Green
 }
 
-Write-Host "Generando reporte HTML..." -ForegroundColor Green
-reportgenerator -reports:"$($coverageFile.FullName)" -targetdir:./coverage-report -reporttypes:HTML
-
-# Abrir el reporte en el navegador
-$reportPath = Resolve-Path "./coverage-report/index.html"
-Write-Host "Abriendo reporte de cobertura..." -ForegroundColor Green
-Start-Process $reportPath
-
-Write-Host "Reporte generado exitosamente en: $reportPath" -ForegroundColor Green
+# Salir siempre con código 0, ya que este script es solo para visualización.
+exit 0
