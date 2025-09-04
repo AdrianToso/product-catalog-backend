@@ -19,6 +19,11 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="FluentAssertions" Version="8.6.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.19" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.7" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.7" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="xunit" Version="2.9.3" />
@@ -31,6 +36,7 @@
   <ItemGroup>
     <ProjectReference Include="..\ADR_T.ProductCatalog.Application\ADR_T.ProductCatalog.Application.csproj" />
     <ProjectReference Include="..\ADR_T.ProductCatalog.Core\ADR_T.ProductCatalog.Core.csproj" />
+    <ProjectReference Include="..\ADR_T.ProductCatalog.WebApi\ADR_T.ProductCatalog.WebApi.csproj" />
   </ItemGroup>
 
   <ItemGroup>

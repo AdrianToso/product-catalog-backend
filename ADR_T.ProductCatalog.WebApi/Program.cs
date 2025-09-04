@@ -9,16 +9,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Configuración de la configuración - MODIFICACIÓN AQUÍ
-builder.Configuration
-    .SetBasePath(builder.Environment.ContentRootPath)
-    .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-    .AddJsonFile($"appsettings.{builder.Environment.EnvironmentName}.json", optional: true, reloadOnChange: true)
-    .AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true) // ← NUEVA LÍNEA
-    .AddEnvironmentVariables();
 
 // Configuración de Serilog
 Log.Logger = new LoggerConfiguration()
@@ -51,6 +44,15 @@ builder.Services.AddControllers(options =>
     options.Filters.Add(new ProducesAttribute("application/json"));
 });
 
+// Implementación de Health Checks
+builder.Services.AddHealthChecks()
+    .AddSqlServer(
+        connectionString: builder.Configuration.GetConnectionString("DefaultConnection")!,
+        name: "Database",
+        failureStatus: HealthStatus.Unhealthy,
+        tags: new[] { "dependencies" });
+
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
@@ -66,7 +68,6 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 
-    // Agrega el filtro para manejar archivos
     options.OperationFilter<SwaggerFileOperationFilter>();
 
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -99,7 +100,12 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 builder.Services.AddApplicationServices();
-builder.Services.AddInfrastructureServices(builder.Configuration);
+
+if (builder.Environment.IsEnvironment("Testing") == false)
+{
+    builder.Services.AddInfrastructureServices(builder.Configuration);
+}
+// ----- FIN DE LA CORRECCIÓN -----
 
 var myCorsPolicy = "MyCorsPolicy";
 builder.Services.AddCors(options =>
@@ -116,15 +122,19 @@ builder.Services.AddCors(options =>
 var app = builder.Build();
 
 // Siembra de datos inicial
-using (var scope = app.Services.CreateScope())
+if (app.Environment.IsEnvironment("Testing") == false)
 {
-    var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>();
-    logger.LogInformation("Iniciando siembra de datos...");
-    var seeder = services.GetRequiredService<DataSeeder>();
-    await seeder.SeedAsync();
-    logger.LogInformation("Siembra de datos finalizada.");
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("Iniciando siembra de datos...");
+        var seeder = services.GetRequiredService<DataSeeder>();
+        await seeder.SeedAsync();
+        logger.LogInformation("Siembra de datos finalizada.");
+    }
 }
+
 
 // Middlewares
 app.UseMiddleware<RequestLoggingMiddleware>();
@@ -139,7 +149,10 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
+{
+    app.UseMiddleware<ExceptionHandlingMiddleware>();
+}
 
 app.UseHttpsRedirection();
 
@@ -148,6 +161,9 @@ app.UseStaticFiles();
 app.UseCors(myCorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Mapeo del endpoint de Health Checks
+app.MapHealthChecks("/health");
 
 app.MapControllers();
 

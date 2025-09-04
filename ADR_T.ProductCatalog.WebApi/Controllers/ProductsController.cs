@@ -153,29 +153,6 @@ public class ProductsController : ControllerBase
         }
     }
 
-    [HttpPost("debug-upload")]
-    [AllowAnonymous]
-    public async Task<IActionResult> DebugUpload(IFormFile file)
-    {
-        try
-        {
-            if (file == null)
-                return BadRequest("File is null");
-
-            return Ok(new
-            {
-                FileName = file.FileName,
-                ContentType = file.ContentType,
-                Length = file.Length,
-                Headers = file.Headers,
-                CanRead = file.OpenReadStream().CanRead
-            });
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { Error = ex.Message, Details = ex.ToString() });
-        }
-    }
     [HttpPost("with-image")]
     [Authorize(Roles = "Admin")]
     [Consumes("multipart/form-data")]

@@ -515,4 +515,6 @@ local-coverage-report/
 
 coverage-report/
 .appsettings.Local.json
+.config/
+
 
