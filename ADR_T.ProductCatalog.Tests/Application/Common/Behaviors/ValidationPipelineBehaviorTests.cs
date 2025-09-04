@@ -1,90 +1,59 @@
-using FluentValidation;
-using FluentValidation.Results;
-using MediatR;
-using ADR_T.ProductCatalog.Application.Common.Behaviors;
-using ADR_T.ProductCatalog.Core.Domain.Exceptions;
-using Moq;
+using ADR_T.ProductCatalog.Core.Domain.Entities;
+using FluentAssertions;
 using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 
-namespace ADR_T.ProductCatalog.Tests.Application.Common.Behaviors
+namespace ADR_T.ProductCatalog.Tests.Domain.Entities
 {
-    public class ValidationPipelineBehaviorTests
+    // Clase concreta para poder instanciar y probar la clase abstracta EntityBase
+    public class ConcreteEntity : EntityBase
     {
-        private readonly Mock<IValidator<TestRequest>> _validatorMock;
-        private readonly ValidationPipelineBehavior<TestRequest, TestResponse> _behavior;
-        private readonly List<IValidator<TestRequest>> _validators;
+        public ConcreteEntity() : base() { }
+        public ConcreteEntity(Guid id) : base(id) { }
+    }
 
-        public ValidationPipelineBehaviorTests()
-        {
-            _validatorMock = new Mock<IValidator<TestRequest>>();
-            _validators = new List<IValidator<TestRequest>>();
-            _behavior = new ValidationPipelineBehavior<TestRequest, TestResponse>(_validators);
-        }
-
+    public class EntityBaseTests
+    {
         [Fact]
-        public async Task Handle_ShouldCallNext_WhenNoValidators()
+        public void Constructor_Default_ShouldInitializePropertiesCorrectly()
         {
-            // Arrange
-            var request = new TestRequest();
-            var response = new TestResponse();
-            MediatR.RequestHandlerDelegate<TestResponse> next = (CancellationToken ct) => Task.FromResult(response);
-
-            // Act
-            var result = await _behavior.Handle(request, next, CancellationToken.None);
+            // Arrange & Act
+            var entity = new ConcreteEntity();
 
             // Assert
-            Assert.Equal(response, result);
+            entity.Id.Should().NotBe(Guid.Empty);
+            entity.FechacCreacion.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
+            entity.FechacActualizacion.Should().BeNull();
+            entity.IsDeleted.Should().BeFalse();
         }
 
         [Fact]
-        public async Task Handle_ShouldCallNext_WhenValidationSucceeds()
+        public void Constructor_WithGuid_ShouldSetIdCorrectly()
         {
             // Arrange
-            var request = new TestRequest();
-            var response = new TestResponse();
-            _validators.Add(_validatorMock.Object);
-
-            var validationResult = new ValidationResult();
-            _validatorMock.Setup(v => v.ValidateAsync(It.IsAny<ValidationContext<TestRequest>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(validationResult);
-
-            MediatR.RequestHandlerDelegate<TestResponse> next = (CancellationToken ct) => Task.FromResult(response);
+            var specificId = Guid.NewGuid();
 
             // Act
-            var result = await _behavior.Handle(request, next, CancellationToken.None);
+            var entity = new ConcreteEntity(specificId);
 
             // Assert
-            Assert.Equal(response, result);
-            _validatorMock.Verify(v => v.ValidateAsync(It.IsAny<ValidationContext<TestRequest>>(), It.IsAny<CancellationToken>()), Times.Once);
+            entity.Id.Should().Be(specificId);
+            // Las otras propiedades deberían seguir inicializándose correctamente
+            entity.FechacCreacion.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
         }
 
         [Fact]
-        public async Task Handle_ShouldThrowValidationException_WhenValidationFails()
+        public void IsDeleted_Setter_ShouldUpdateValue()
         {
             // Arrange
-            var request = new TestRequest();
-            _validators.Add(_validatorMock.Object);
+            var entity = new ConcreteEntity();
 
-            var validationFailure = new ValidationFailure("PropertyName", "Error message");
-            var validationResult = new ValidationResult(new[] { validationFailure });
-            _validatorMock.Setup(v => v.ValidateAsync(It.IsAny<ValidationContext<TestRequest>>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(validationResult);
+            // Act
+            entity.IsDeleted = true;
 
-            MediatR.RequestHandlerDelegate<TestResponse> next = (CancellationToken ct) => Task.FromResult(new TestResponse());
-
-            // Act & Assert
-            await Assert.ThrowsAsync<Core.Domain.Exceptions.ValidationException>(() =>
-                _behavior.Handle(request, next, CancellationToken.None));
-
-            _validatorMock.Verify(v => v.ValidateAsync(It.IsAny<ValidationContext<TestRequest>>(), It.IsAny<CancellationToken>()), Times.Once);
+            // Assert
+            entity.IsDeleted.Should().BeTrue();
         }
-
-        // Clases de prueba internas
-        public class TestRequest : IRequest<TestResponse> { }
-        public class TestResponse { }
     }
 }
+

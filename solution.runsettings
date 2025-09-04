@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="XPlat code coverage">
+        <Configuration>
+          <Format>cobertura</Format>
+          
+          <ExcludeByAssembly>
+            ADR_T.ProductCatalog.WebApi.dll,
+            ADR_T.ProductCatalog.Tests.dll,
+            Microsoft.*.dll,
+            System.*.dll,
+            testhost.dll
+          </ExcludeByAssembly>
+
+          <ExcludeByAttribute>Obfuscation, GeneratedCodeAttribute, CompilerGeneratedAttribute</ExcludeByAttribute>
+          <ExcludeByFile>
+            **/ADR_T.ProductCatalog.Application/DTOs/**/*.cs,
+            **/ADR_T.ProductCatalog.Core/Domain/Exceptions/**/*.cs,
+            **/ADR_T.ProductCatalog.Infrastructure/Migrations/**/*.cs
+          </ExcludeByFile>
+          
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
