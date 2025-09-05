@@ -6,7 +6,6 @@ using ADR_T.ProductCatalog.WebApi.HealthChecks;
 using ADR_T.ProductCatalog.WebApi.Middleware;
 using ADR_T.ProductCatalog.WebAPI.Middleware;
 using HealthChecks.UI.Client;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Mvc;
@@ -68,6 +67,8 @@ builder.Services.AddRateLimiter(options =>
     // Código de respuesta cuando se alcanza el límite
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
+
+builder.Services.AddResponseCaching();
 
 builder.Services.AddControllers(options =>
 {
@@ -213,12 +214,16 @@ app.UseSecurityHeaders(policy =>
           {
               builder.AddBlockAllMixedContent();
               builder.AddDefaultSrc().Self();
+              builder.AddImgSrc().Self().From("data:");
+              builder.AddStyleSrc().Self().UnsafeInline();
+              builder.AddScriptSrc().Self().UnsafeInline();
           })
 );
 app.UseStaticFiles();
-
-app.UseCors(myCorsPolicy);
 app.UseRateLimiter();
+app.UseResponseCaching();
+app.UseCors(myCorsPolicy);
+
 app.UseAuthentication();
 app.UseAuthorization();
 
