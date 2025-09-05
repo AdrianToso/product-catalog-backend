@@ -57,6 +57,7 @@ public class CategoriesController : ControllerBase
     /// Obtiene todas las categorías.
     /// </summary>
     /// <returns>Una lista de todas las categorías.</returns>
+    [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Any)]
     [HttpGet]
     [AllowAnonymous] // Este endpoint también puede ser público
     [ProducesResponseType(StatusCodes.Status200OK)]
