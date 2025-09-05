@@ -10,6 +10,10 @@ using Microsoft.AspNetCore.Http.Features;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Serilog.Enrichers.CorrelationId;
+using ADR_T.ProductCatalog.WebApi.HealthChecks;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +21,7 @@ var builder = WebApplication.CreateBuilder(args);
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
+    .Enrich.WithCorrelationId()
     .WriteTo.Console()
     .WriteTo.File("Logs/log-.txt", rollingInterval: RollingInterval.Day, retainedFileCountLimit: 7)
     .CreateLogger();
@@ -50,7 +55,20 @@ builder.Services.AddHealthChecks()
         connectionString: builder.Configuration.GetConnectionString("DefaultConnection")!,
         name: "Database",
         failureStatus: HealthStatus.Unhealthy,
+        tags: new[] { "dependencies" })
+    .AddCheck<FileStorageHealthCheck>(
+        "File Storage",
+        failureStatus: HealthStatus.Degraded,
         tags: new[] { "dependencies" });
+
+// Configura los servicios para el Dashboard de Health Checks UI
+builder.Services.AddHealthChecksUI(setup =>
+{
+    // Indica a la UI qué endpoint debe consultar para obtener el estado de salud
+    setup.AddHealthCheckEndpoint("API Health", "/health");
+    setup.SetEvaluationTimeInSeconds(15); // Frecuencia de sondeo
+})
+.AddInMemoryStorage();
 
 
 builder.Services.AddEndpointsApiExplorer();
@@ -105,7 +123,6 @@ if (builder.Environment.IsEnvironment("Testing") == false)
 {
     builder.Services.AddInfrastructureServices(builder.Configuration);
 }
-// ----- FIN DE LA CORRECCIÓN -----
 
 var myCorsPolicy = "MyCorsPolicy";
 builder.Services.AddCors(options =>
@@ -135,8 +152,8 @@ if (app.Environment.IsEnvironment("Testing") == false)
     }
 }
 
-
 // Middlewares
+app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -162,8 +179,17 @@ app.UseCors(myCorsPolicy);
 app.UseAuthentication();
 app.UseAuthorization();
 
-// Mapeo del endpoint de Health Checks
-app.MapHealthChecks("/health");
+// Mapeo de endpoints de Health Checks
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    Predicate = _ => true,
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
+
+app.MapHealthChecksUI(options =>
+{
+    options.UIPath = "/healthchecks-ui"; // Define la ruta del dashboard
+});
 
 app.MapControllers();
 

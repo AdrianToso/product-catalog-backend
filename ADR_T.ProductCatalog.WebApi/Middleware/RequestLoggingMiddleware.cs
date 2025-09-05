@@ -24,10 +24,11 @@ namespace ADR_T.ProductCatalog.WebApi.Middleware
             var stopwatch = Stopwatch.StartNew();
 
             _logger.LogInformation(
-                "Request iniciado: {Method} {Path} desde {IpAddress}",
+                "Request iniciado: {Method} {Path} desde {IpAddress} | CorrelationId: {CorrelationId}",
                 context.Request.Method,
                 context.Request.Path,
-                context.Connection.RemoteIpAddress?.ToString()
+                context.Connection.RemoteIpAddress?.ToString(),
+                context.TraceIdentifier
             );
 
             await _next(context);
@@ -35,11 +36,12 @@ namespace ADR_T.ProductCatalog.WebApi.Middleware
             stopwatch.Stop();
 
             _logger.LogInformation(
-                "Request finalizado: {Method} {Path} - Estado: {StatusCode} - Tiempo: {Elapsed} ms",
+                "Request finalizado: {Method} {Path} - Estado: {StatusCode} - Tiempo: {Elapsed} ms | CorrelationId: {CorrelationId}",
                 context.Request.Method,
                 context.Request.Path,
                 context.Response.StatusCode,
-                stopwatch.ElapsedMilliseconds
+                stopwatch.ElapsedMilliseconds,
+                context.TraceIdentifier
             );
         }
     }
