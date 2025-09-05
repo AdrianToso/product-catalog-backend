@@ -1,19 +1,22 @@
-using System.Reflection;
 using ADR_T.ProductCatalog.Application;
 using ADR_T.ProductCatalog.Infrastructure;
 using ADR_T.ProductCatalog.Infrastructure.Persistence;
 using ADR_T.ProductCatalog.WebApi.Filters;
+using ADR_T.ProductCatalog.WebApi.HealthChecks;
 using ADR_T.ProductCatalog.WebApi.Middleware;
 using ADR_T.ProductCatalog.WebAPI.Middleware;
-using Microsoft.AspNetCore.Mvc;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using Serilog;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Serilog.Enrichers.CorrelationId;
-using ADR_T.ProductCatalog.WebApi.HealthChecks;
-using HealthChecks.UI.Client;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using System.Reflection;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -27,6 +30,14 @@ Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 builder.Host.UseSerilog();
+
+// Registra los servicios de Compresión de Respuesta
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+});
 
 // Configurar límites de Kestrel
 builder.WebHost.ConfigureKestrel(options =>
@@ -42,6 +53,20 @@ builder.Services.Configure<FormOptions>(options =>
     options.MultipartHeadersLengthLimit = 16384;
     options.ValueLengthLimit = 134217728; // 128 MB
     options.BufferBodyLengthLimit = 134217728; // 128 MB
+});
+// Registra los servicios del Límite de Tasa (Rate Limiter)
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter(policyName: "fixed", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 100;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+        limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
+        limiterOptions.QueueLimit = 0;
+    });
+
+    // Código de respuesta cuando se alcanza el límite
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
 });
 
 builder.Services.AddControllers(options =>
@@ -138,6 +163,15 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
+// Esto asegura que las cabeceras como HSTS se añadan durante los tests.
+if (app.Environment.IsEnvironment("Testing"))
+{
+    app.Use((context, next) =>
+    {
+        context.Request.Scheme = "https";
+        return next();
+    });
+}
 // Siembra de datos inicial
 if (app.Environment.IsEnvironment("Testing") == false)
 {
@@ -151,7 +185,7 @@ if (app.Environment.IsEnvironment("Testing") == false)
         logger.LogInformation("Siembra de datos finalizada.");
     }
 }
-
+app.UseResponseCompression();
 // Middlewares
 app.UseMiddleware<CorrelationIdMiddleware>();
 app.UseMiddleware<RequestLoggingMiddleware>();
@@ -172,10 +206,19 @@ if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Testing"))
 }
 
 app.UseHttpsRedirection();
-
+app.UseSecurityHeaders(policy =>
+    policy.AddDefaultSecurityHeaders()
+          .AddStrictTransportSecurity(60 * 60 * 24 * 365, true, false)
+          .AddContentSecurityPolicy(builder =>
+          {
+              builder.AddBlockAllMixedContent();
+              builder.AddDefaultSrc().Self();
+          })
+);
 app.UseStaticFiles();
 
 app.UseCors(myCorsPolicy);
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -191,6 +234,6 @@ app.MapHealthChecksUI(options =>
     options.UIPath = "/healthchecks-ui"; // Define la ruta del dashboard
 });
 
-app.MapControllers();
+app.MapControllers().RequireRateLimiting("fixed");
 
 app.Run();
