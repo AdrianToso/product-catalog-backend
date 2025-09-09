@@ -23,7 +23,13 @@ public class UpdateProductCommandHandler : IRequestHandler<UpdateProductCommand>
             throw new NotFoundException(nameof(Product), request.Id);
         }
 
-        productToUpdate.Update(request.Name, request.Description, request.CategoryId, request.ImageUrl);
+        productToUpdate.Update(
+            request.Name,
+            request.Description,
+            request.Price,
+            request.StockQuantity,
+            request.CategoryId,
+            request.ImageUrl);
 
         await _unitOfWork.ProductRepository.UpdateAsync(productToUpdate, cancellationToken);
         await _unitOfWork.CommitAsync(cancellationToken);

@@ -18,6 +18,8 @@ public class MappingProfile : Profile
         CreateMap<CreateProductCommand, Product>()
             .ForCtorParam("name", opt => opt.MapFrom(src => src.Name))
             .ForCtorParam("description", opt => opt.MapFrom(src => src.Description))
+            .ForCtorParam("price", opt => opt.MapFrom(src => src.Price))
+            .ForCtorParam("stockQuantity", opt => opt.MapFrom(src => src.StockQuantity))
             .ForCtorParam("categoryId", opt => opt.MapFrom(src => src.CategoryId))
             .ForCtorParam("imageUrl", opt => opt.MapFrom(src => src.ImageUrl));
 

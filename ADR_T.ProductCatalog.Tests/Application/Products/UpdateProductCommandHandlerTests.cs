@@ -4,111 +4,82 @@ using ADR_T.ProductCatalog.Core.Domain.Exceptions;
 using ADR_T.ProductCatalog.Core.Domain.Interfaces;
 using FluentAssertions;
 using Moq;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Xunit;
 
-namespace ADR_T.ProductCatalog.Tests.Application.Products;
-
-public class UpdateProductCommandHandlerTests
+namespace ADR_T.ProductCatalog.Tests.Application.Products
 {
-    [Fact]
-    public async Task Handle_Should_Update_Product_When_Found()
+    public class UpdateProductCommandHandlerTests
     {
-        // Arrange
-        var categoryId = Guid.NewGuid();
-        var product = new Product("Original", "Desc", categoryId);
-
-        var repo = new Mock<IProductRepository>();
-        repo.Setup(r => r.GetByIdWithCategoriesAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(product);
-
-        var uow = new Mock<IUnitOfWork>();
-        uow.Setup(u => u.ProductRepository).Returns(repo.Object);
-        uow.Setup(u => u.CommitAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-
-        var handler = new UpdateProductCommandHandler(uow.Object);
-        var command = new UpdateProductCommand
+        [Fact]
+        public async Task Handle_Should_Update_Product_When_Found()
         {
-            Id = Guid.NewGuid(),
-            Name = "Nuevo",
-            Description = "Actualizado",
-            ImageUrl = "img.png",
-            CategoryId = categoryId
-        };
+            // Arrange
+            var categoryId = Guid.NewGuid();
+            var product = new Product("Original", "Desc", 10.00m, 50, categoryId);
 
-        // Act
-        await handler.Handle(command, default);
+            var repo = new Mock<IProductRepository>();
+            repo.Setup(r => r.GetByIdWithCategoriesAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(product);
 
-        // Assert
-        product.Name.Should().Be("Nuevo");
-        product.Description.Should().Be("Actualizado");
-        product.ImageUrl.Should().Be("img.png");
-        product.CategoryId.Should().Be(categoryId);
-    }
+            var uow = new Mock<IUnitOfWork>();
+            uow.Setup(u => u.ProductRepository).Returns(repo.Object);
+            uow.Setup(u => u.CommitAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-    [Fact]
-    public async Task Handle_Should_Throw_NotFoundException_When_Product_Does_Not_Exist()
-    {
-        // Arrange
-        var repo = new Mock<IProductRepository>();
-        repo.Setup(r => r.GetByIdWithCategoriesAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Product?)null);
+            var handler = new UpdateProductCommandHandler(uow.Object);
+            var command = new UpdateProductCommand
+            {
+                Id = Guid.NewGuid(),
+                Name = "Nuevo",
+                Description = "Actualizado",
+                Price = 25.50m,
+                StockQuantity = 100,
+                ImageUrl = "img.png",
+                CategoryId = categoryId
+            };
 
-        var uow = new Mock<IUnitOfWork>();
-        uow.Setup(u => u.ProductRepository).Returns(repo.Object);
+            // Act
+            await handler.Handle(command, default);
 
-        var handler = new UpdateProductCommandHandler(uow.Object);
-        var command = new UpdateProductCommand
+            // Assert
+            product.Name.Should().Be("Nuevo");
+            product.Description.Should().Be("Actualizado");
+            product.Price.Should().Be(25.50m);
+            product.StockQuantity.Should().Be(100);
+            product.ImageUrl.Should().Be("img.png");
+            product.CategoryId.Should().Be(categoryId);
+        }
+
+        [Fact]
+        public async Task Handle_Should_Throw_NotFoundException_When_Product_Does_Not_Exist()
         {
-            Id = Guid.NewGuid(),
-            Name = "X",
-            Description = "Y",
-            ImageUrl = "img",
-            CategoryId = Guid.NewGuid()
-        };
+            // Arrange
+            var repo = new Mock<IProductRepository>();
+            repo.Setup(r => r.GetByIdWithCategoriesAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((Product?)null);
 
-        // Act
-        var act = async () => await handler.Handle(command, default);
+            var uow = new Mock<IUnitOfWork>();
+            uow.Setup(u => u.ProductRepository).Returns(repo.Object);
 
-        // Assert
-        await act.Should().ThrowAsync<NotFoundException>();
-    }
+            var handler = new UpdateProductCommandHandler(uow.Object);
+            var command = new UpdateProductCommand
+            {
+                Id = Guid.NewGuid(),
+                Name = "X",
+                Description = "Y",
+                Price = 1m,
+                StockQuantity = 1,
+                ImageUrl = "img",
+                CategoryId = Guid.NewGuid()
+            };
 
-    [Fact]
-    public async Task Handle_Should_Update_Category_When_Valid_CategoryId_Provided()
-    {
-        // Arrange
-        var categoryId = Guid.NewGuid();
-        var category = new Category("Cat", "desc");
-        typeof(Category).GetProperty("Id")!.SetValue(category, categoryId);
+            // Act
+            var act = async () => await handler.Handle(command, default);
 
-        var product = new Product("Producto X", "desc", categoryId);
-
-        var prodRepo = new Mock<IProductRepository>();
-        prodRepo.Setup(r => r.GetByIdWithCategoriesAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(product);
-
-        var catRepo = new Mock<ICategoryRepository>();
-        catRepo.Setup(r => r.GetByIdAsync(categoryId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(category);
-
-        var uow = new Mock<IUnitOfWork>();
-        uow.Setup(u => u.ProductRepository).Returns(prodRepo.Object);
-        uow.Setup(u => u.CategoryRepository).Returns(catRepo.Object);
-        uow.Setup(u => u.CommitAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
-
-        var handler = new UpdateProductCommandHandler(uow.Object);
-        var command = new UpdateProductCommand
-        {
-            Id = Guid.NewGuid(),
-            Name = "Actualizado",
-            Description = "Nuevo desc",
-            ImageUrl = "img.png",
-            CategoryId = categoryId
-        };
-
-        // Act
-        await handler.Handle(command, default);
-
-        // Assert
-        product.CategoryId.Should().Be(categoryId);
+            // Assert
+            await act.Should().ThrowAsync<NotFoundException>();
+        }
     }
 }

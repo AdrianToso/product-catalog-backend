@@ -31,7 +31,13 @@ public class CreateProductWithImageCommandHandler : IRequestHandler<CreateProduc
         }
 
         // Crear producto
-        var product = new Product(request.Name, request.Description, request.CategoryId, imageUrl);
+        var product = new Product(
+            request.Name,
+            request.Description,
+            request.Price,
+            request.StockQuantity,
+            request.CategoryId,
+            imageUrl);
         await _unitOfWork.ProductRepository.AddAsync(product, cancellationToken);
         await _unitOfWork.CommitAsync(cancellationToken);
 

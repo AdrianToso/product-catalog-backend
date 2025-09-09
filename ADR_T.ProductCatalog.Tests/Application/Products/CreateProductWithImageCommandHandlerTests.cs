@@ -27,6 +27,8 @@ namespace ADR_T.ProductCatalog.Tests.Application.Products
             {
                 Name = "Test Product",
                 Description = "Test Description",
+                Price = 50.00m,
+                StockQuantity = 20,
                 CategoryId = Guid.NewGuid(),
                 ImageFile = CreateTestFormFile("test.jpg", "image/jpeg", 1024)
             };
@@ -57,8 +59,10 @@ namespace ADR_T.ProductCatalog.Tests.Application.Products
             {
                 Name = "Test Product",
                 Description = "Test Description",
+                Price = 50.00m,
+                StockQuantity = 20,
                 CategoryId = Guid.NewGuid(),
-                ImageFile = null // No image
+                ImageFile = null
             };
 
             _mockUnitOfWork.Setup(u => u.ProductRepository.AddAsync(It.IsAny<Product>(), It.IsAny<CancellationToken>()))
