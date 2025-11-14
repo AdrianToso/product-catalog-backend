@@ -518,3 +518,6 @@ coverage-report/
 .config/
 
 
+scripts/Documentador_de_configuracion.go
+scripts/documentacion_workflows.go
+scripts/documentador_2.go
