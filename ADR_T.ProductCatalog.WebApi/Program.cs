@@ -16,10 +16,49 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using System.Reflection;
 using System.Threading.RateLimiting;
+using DotNetEnv;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configuración de Serilog
+try
+{
+    var currentDirectory = Directory.GetCurrentDirectory();
+    var solutionRoot = FindSolutionRoot(currentDirectory);
+
+    var envPath = Path.Combine(solutionRoot, ".env");
+
+    if (File.Exists(envPath))
+    {
+        Console.WriteLine($"Cargando variables desde: {envPath}");
+        Env.Load(envPath);
+    }
+    else
+    {
+        Console.WriteLine($"Archivo .env no encontrado en: {envPath}");
+        Console.WriteLine("Asegúrate de que el archivo .env esté en la raíz de la solución");
+        return;
+    }
+
+    var dbConnection = Environment.GetEnvironmentVariable("DB_CONNECTION");
+    if (!string.IsNullOrEmpty(dbConnection))
+    {
+        builder.Configuration["ConnectionStrings:DefaultConnection"] = dbConnection;
+        Console.WriteLine($"DB configurada desde .env: {dbConnection.Split(';')[0]}...");
+    }
+
+    var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY");
+    if (!string.IsNullOrEmpty(jwtKey))
+    {
+        builder.Configuration["Jwt:Key"] = jwtKey;
+        builder.Configuration["Jwt:Issuer"] = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "ProductCatalogAPI";
+        builder.Configuration["Jwt:Audience"] = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "ProductCatalogUsers";
+        Console.WriteLine("✅ JWT configurado desde variables de entorno");
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Error cargando .env: {ex.Message}");
+}
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
@@ -30,7 +69,24 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
-// Registra los servicios de Compresión de Respuesta
+static string FindSolutionRoot(string currentDirectory)
+{
+    var directory = new DirectoryInfo(currentDirectory);
+
+    while (directory != null)
+    {
+        var solutionFiles = directory.GetFiles("*.sln");
+        if (solutionFiles.Length > 0)
+        {
+            return directory.FullName;
+        }
+
+        directory = directory.Parent;
+    }
+
+    throw new InvalidOperationException("No se pudo encontrar la raíz de la solución (archivo .sln)");
+}
+
 builder.Services.AddResponseCompression(options =>
 {
     options.EnableForHttps = true;
@@ -41,19 +97,19 @@ builder.Services.AddResponseCompression(options =>
 // Configurar límites de Kestrel
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.Limits.MaxRequestBodySize = 52428800; // 50 MB
+    options.Limits.MaxRequestBodySize = 52428800;
 });
 
 // Configurar límites de formularios
 builder.Services.Configure<FormOptions>(options =>
 {
-    options.MultipartBodyLengthLimit = 52428800; // 50 MB
+    options.MultipartBodyLengthLimit = 52428800;
     options.MultipartHeadersCountLimit = 100;
     options.MultipartHeadersLengthLimit = 16384;
-    options.ValueLengthLimit = 134217728; // 128 MB
-    options.BufferBodyLengthLimit = 134217728; // 128 MB
+    options.ValueLengthLimit = 134217728;
+    options.BufferBodyLengthLimit = 134217728;
 });
-// Registra los servicios del Límite de Tasa (Rate Limiter)
+
 builder.Services.AddRateLimiter(options =>
 {
     options.AddFixedWindowLimiter(policyName: "fixed", limiterOptions =>
@@ -92,7 +148,7 @@ builder.Services.AddHealthChecksUI(setup =>
 {
     // Indica a la UI qué endpoint debe consultar para obtener el estado de salud
     setup.AddHealthCheckEndpoint("API Health", "/health");
-    setup.SetEvaluationTimeInSeconds(15); // Frecuencia de sondeo
+    setup.SetEvaluationTimeInSeconds(60); // Frecuencia de sondeo
 })
 .AddInMemoryStorage();
 
@@ -173,7 +229,7 @@ if (app.Environment.IsEnvironment("Testing"))
         return next();
     });
 }
-// Siembra de datos inicial
+
 if (app.Environment.IsEnvironment("Testing") == false)
 {
     using (var scope = app.Services.CreateScope())
@@ -186,6 +242,7 @@ if (app.Environment.IsEnvironment("Testing") == false)
         logger.LogInformation("Siembra de datos finalizada.");
     }
 }
+
 app.UseResponseCompression();
 // Middlewares
 app.UseMiddleware<CorrelationIdMiddleware>();
