@@ -26,6 +26,21 @@ jobs:
     strategy:
       fail-fast: false
 
+    # VARIABLES DE ENTORNO PARA TESTING
+    env:
+      ConnectionStrings__DefaultConnection: Server=localhost;Database=product_catalog_test;Trusted_Connection=false;MultipleActiveResultSets=true
+      JWT__Secret: test_jwt_secret_key_min_32_chars_1234567890
+      JWT__Issuer: product-catalog-test
+      JWT__Audience: product-catalog-test
+      JWT__ExpireMinutes: "60"
+      API_KEY: test_api_key_12345
+      ASPNETCORE_ENVIRONMENT: Testing
+      ALLOWED_ORIGINS: http://localhost:3000,https://localhost:3000
+      RATE_LIMITING__PERMIT_LIMIT: "100"
+      RATE_LIMITING__WINDOW: "1"
+      FILE_STORAGE__PATH: ./storage-test
+      LOGGING__LEVEL: Information
+
     steps:
       - name: Obtener código del repositorio
         uses: actions/checkout@v4
@@ -56,8 +71,30 @@ jobs:
           dotnet tool install -g dotnet-reportgenerator-globaltool
           echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
+      - name: Verificar variables de entorno
+        run: |
+          echo "=== Variables de entorno configuradas ==="
+          echo "ASPNETCORE_ENVIRONMENT: $ASPNETCORE_ENVIRONMENT"
+          echo "JWT__Issuer: $JWT__Issuer"
+          echo "API_KEY: ${API_KEY:0:10}..." # Mostrar solo primeros 10 chars por seguridad
+          echo "=== Fin verificación ==="
+
       - name: Ejecutar pruebas unitarias con cobertura
         run: dotnet test --configuration Release --no-build --collect:"XPlat Code Coverage" --verbosity normal
+        env:
+          # Variables específicas para el comando test (pueden heredar del job)
+          ConnectionStrings__DefaultConnection: ${{ env.ConnectionStrings__DefaultConnection }}
+          JWT__Secret: ${{ env.JWT__Secret }}
+          JWT__Issuer: ${{ env.JWT__Issuer }}
+          JWT__Audience: ${{ env.JWT__Audience }}
+          JWT__ExpireMinutes: ${{ env.JWT__ExpireMinutes }}
+          API_KEY: ${{ env.API_KEY }}
+          ASPNETCORE_ENVIRONMENT: ${{ env.ASPNETCORE_ENVIRONMENT }}
+          ALLOWED_ORIGINS: ${{ env.ALLOWED_ORIGINS }}
+          RATE_LIMITING__PERMIT_LIMIT: ${{ env.RATE_LIMITING__PERMIT_LIMIT }}
+          RATE_LIMITING__WINDOW: ${{ env.RATE_LIMITING__WINDOW }}
+          FILE_STORAGE__PATH: ${{ env.FILE_STORAGE__PATH }}
+          LOGGING__LEVEL: ${{ env.LOGGING__LEVEL }}
 
       - name: Generar informe de cobertura
         run: reportgenerator -reports:./**/TestResults/**/coverage.cobertura.xml -targetdir:./coverage -reporttypes:Html
