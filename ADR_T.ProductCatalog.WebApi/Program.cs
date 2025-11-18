@@ -20,45 +20,45 @@ using DotNetEnv;
 
 var builder = WebApplication.CreateBuilder(args);
 
-try
+if (builder.Environment.IsDevelopment())
 {
-    var currentDirectory = Directory.GetCurrentDirectory();
-    var solutionRoot = FindSolutionRoot(currentDirectory);
-
-    var envPath = Path.Combine(solutionRoot, ".env");
-
-    if (File.Exists(envPath))
+    try
     {
-        Console.WriteLine($"Cargando variables desde: {envPath}");
-        Env.Load(envPath);
+        var currentDirectory = Directory.GetCurrentDirectory();
+        var solutionRoot = FindSolutionRoot(currentDirectory);
+        var envPath = Path.Combine(solutionRoot, ".env");
+
+        if (File.Exists(envPath))
+        {
+            Console.WriteLine($"Cargando variables desde: {envPath}");
+            Env.Load(envPath);
+        }
+        else
+        {
+            Console.WriteLine($"Archivo .env no encontrado en desarrollo: {envPath}");
+        }
     }
-    else
+    catch (Exception ex)
     {
-        Console.WriteLine($"Archivo .env no encontrado en: {envPath}");
-        Console.WriteLine("Asegúrate de que el archivo .env esté en la raíz de la solución");
-        return;
-    }
-
-    var dbConnection = Environment.GetEnvironmentVariable("DB_CONNECTION");
-    if (!string.IsNullOrEmpty(dbConnection))
-    {
-        builder.Configuration["ConnectionStrings:DefaultConnection"] = dbConnection;
-        Console.WriteLine($"DB configurada desde .env: {dbConnection.Split(';')[0]}...");
-    }
-
-    var jwtKey = Environment.GetEnvironmentVariable("JWT_KEY");
-    if (!string.IsNullOrEmpty(jwtKey))
-    {
-        builder.Configuration["Jwt:Key"] = jwtKey;
-        builder.Configuration["Jwt:Issuer"] = Environment.GetEnvironmentVariable("JWT_ISSUER") ?? "ProductCatalogAPI";
-        builder.Configuration["Jwt:Audience"] = Environment.GetEnvironmentVariable("JWT_AUDIENCE") ?? "ProductCatalogUsers";
-        Console.WriteLine("✅ JWT configurado desde variables de entorno");
+        Console.WriteLine($"Error cargando .env en desarrollo: {ex.Message}");
     }
 }
-catch (Exception ex)
+
+// Variables de entorno tienen PRIORIDAD sobre .env
+builder.Configuration.AddEnvironmentVariables();
+
+// Validación mínima de variables críticas
+var requiredVars = new[] { "ConnectionStrings__DefaultConnection", "JWT__Secret" };
+var missingVars = requiredVars.Where(v =>
+    string.IsNullOrEmpty(builder.Configuration[v]) &&
+    string.IsNullOrEmpty(Environment.GetEnvironmentVariable(v))
+).ToList();
+
+if (missingVars.Any() && !builder.Environment.IsEnvironment("Testing"))
 {
-    Console.WriteLine($"Error cargando .env: {ex.Message}");
+    throw new InvalidOperationException($"Missing required configuration: {string.Join(", ", missingVars)}");
 }
+
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext()
@@ -84,7 +84,7 @@ static string FindSolutionRoot(string currentDirectory)
         directory = directory.Parent;
     }
 
-    throw new InvalidOperationException("No se pudo encontrar la raíz de la solución (archivo .sln)");
+    return currentDirectory; // Fallback al directorio actual
 }
 
 builder.Services.AddResponseCompression(options =>
